@@ -23,6 +23,8 @@ specifically for JavaFX, CEFFX provides an optimized and efficient solution for 
 
 ## Demo <a name="demo"></a>
 
+<img width="1200" height="872" alt="Techsenger CEFFX" src="https://github.com/user-attachments/assets/b6b3ee9e-2bb2-4e42-9dd2-d8d3e1294d6a" />
+
 ## Features <a name="features"></a>
 
 Key features include:
