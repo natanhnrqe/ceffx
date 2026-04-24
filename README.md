@@ -1,2 +1,220 @@
-# ceffx
-A library for integrating the Chromium Embedded Framework into JavaFX
+# Techsenger CEFFX
+
+Techsenger CEFFX is a library for integrating the Chromium Embedded Framework into JavaFX applications. It is a port
+of [JCEF](https://github.com/chromiumembedded/java-cef) (commit d3de827), migrated from Swing to JavaFX. Designed
+specifically for JavaFX, CEFFX provides an optimized and efficient solution for working with Chromium on the platform.
+
+## Table of Contents
+* [Demo](#demo)
+* [Features](#features)
+* [Related Projects](#projects)
+    * [Chromium](#projects-chromium)
+    * [CEF](#projects-cef)
+    * [JCEF](#projects-jcef)
+* [Dependencies](#dependencies)
+* [Usage](#usage)
+    * [Settings](#usage-settings)
+    * [Threads](#usage-threads)
+* [Code building](#code-building)
+* [Running Demo](#running-demo)
+* [License](#license)
+* [Contributing](#contributing)
+* [Support Us](#support-us)
+
+## Demo <a name="demo"></a>
+
+## Features <a name="features"></a>
+
+Key features include:
+
+* The library uses only JavaFX classes for UI development.
+* Dual-thread architecture — JavaFX thread and a dedicated CEF thread.
+* Support for most features of Java CEF.
+* A demo application showcasing library features.
+* Comprehensive documentation.
+
+## Related Projects <a name="projects"></a>
+
+### Chromium <a name="projects-chromium"></a>
+
+[Chromium](https://github.com/chromium/chromium) is an open-source web browser project that serves as the foundation
+for many modern browsers, including Google Chrome. It provides a full technology stack for rendering web pages,
+including the Blink rendering engine, the V8 JavaScript engine, as well as subsystems for networking, graphics, and
+multimedia. Chromium is developed as a high-performance and secure platform, offering support for modern web standards
+and a rapid release cycle.
+
+At the same time, Chromium is not a library or an embeddable engine in the traditional sense — it is a full-featured
+browser project with a large codebase and a complex architecture. It can be used as a basis for other solutions, but
+it is not typically distributed as a standalone component for direct embedding into applications. For such use cases,
+higher-level wrappers are commonly used, which adapt its capabilities for integration into third-party applications.
+
+### CEF <a name="projects-cef"></a>
+
+The Chromium Embedded Framework ([CEF](https://github.com/chromiumembedded/cef)) is a simple framework for embedding
+Chromium-based browsers in other applications. CEF insulates the user from the underlying Chromium and Blink code
+complexity by offering production-quality stable APIs, release branches tracking specific Chromium releases,
+and binary distributions. Most features in CEF have default implementations that provide rich functionality while
+requiring little or no integration work from the user. There are currently over 100 million installed instances of CEF
+around the world embedded in products from a wide range of companies and industries. Some use cases for CEF include:
+
+* Embedding an HTML5-compliant Web browser control in an existing native application.
+* Creating a light-weight native “shell” application that hosts a user interface developed primarily using Web technologies.
+* Rendering Web content “off-screen” in applications that have their own custom drawing frameworks.
+* Acting as a host for automated testing of existing Web properties and applications.
+
+CEF supports a wide range of programming languages and operating systems and can be easily integrated into both new
+and existing applications. It was designed from the ground up with both performance and ease of use in mind. The base
+framework includes C and C++ programming interfaces exposed via native libraries that insulate the host application
+from Chromium and Blink implementation details. It provides close integration between the browser and the host
+application including support for custom plugins, protocols, JavaScript objects and JavaScript extensions.
+The host application can optionally control resource loading, navigation, context menus, printing and more, while
+taking advantage of the same performance and HTML5 technologies available in the Google Chrome Web browser.
+
+### JCEF <a name="projects-jcef"></a>
+
+The Java Chromium Embedded Framework ([JCEF](https://github.com/chromiumembedded/java-cef)) is a simple framework for
+embedding Chromium-based browsers in other applications using the Java programming language. It provides a robust and
+mature API that enables seamless integration of modern web technologies into Java applications, supporting features
+such as JavaScript execution, DOM interaction, custom rendering, and fine-grained control over browser behavior.
+Built as a Java wrapper around the Chromium Embedded Framework, JCEF allows developers to leverage the power of the
+Chromium engine within Java applications.
+
+At the same time, JCEF is designed around the Swing UI toolkit, which introduces limitations when used in modern
+Java applications that rely on JavaFX. This architectural choice can make integration less efficient and more complex
+in JavaFX-based environments, particularly when aiming for consistent rendering, threading, and UI behavior across
+the application.
+
+## Dependencies <a name="dependencies"></a>
+
+This project will soon be available on Maven Central.:
+
+```
+<dependency>
+    <groupId>com.techsenger.ceffx</groupId>
+    <artifactId>ceffx-core</artifactId>
+    <version>${ceffx.version}</version>
+</dependency>
+```
+
+## Usage <a name="usage"></a>
+
+### Settings <a name="usage-settings"></a>
+
+Currently `Cef` is used with the following key settings:
+
+```java
+CefSettings settings = new CefSettings();
+settings.windowless_rendering_enabled = true;
+settings.multi_threaded_message_loop = true;
+...
+```
+**windowless_rendering_enabled**. In native (non-OSR) mode, CEF needs a real OS-level window handle — an `HWND` on Windows,
+`NSView` on macOS, or `XID` on Linux — to embed its browser window into. In Swing/AWT this is possible because components
+like Canvas are heavyweight: each one has its own native peer, meaning the OS actually knows about them as separate
+windows and can return a valid handle. CEF attaches itself to that handle and renders directly into it as a child window.
+
+JavaFX, however, is built entirely on lightweight rendering — the whole `Stage` owns a single native window, and every
+`Node` inside it is just painted onto that one surface by the JavaFX engine (Prism). There are no individual native
+peers for `Node` objects, so there is no handle to give CEF. Without a valid OS window handle, CEF has nothing to attach
+to, making windowless_rendering_enabled = false simply impossible in a JavaFX context. OSR must be used instead, where
+CEF renders frames into a pixel buffer that JavaFX can then draw onto a Canvas or WritableImage.
+
+**multi_threaded_message_loop**. When this setting is `true`, CEF spawns its own dedicated thread and runs a native
+OS message loop there. This means CEF manages its own event processing independently, without requiring the host
+application to do anything extra.
+
+When set to `false`, CEF gives up control of the message loop and expects the host application to periodically call
+`CefApp.doMessageLoopWork()` to drive CEF's event processing manually. This gives the host application full control
+over when and how CEF processes its events, which is essential when integrating with frameworks that have their own
+strict threading or event loop models.
+
+Theoretically, both modes are supported in JavaFX. However, in practice when this flag is `false` does not work
+correctly — OS events stop being delivered to the JavaFX platform entirely. The JavaFX Application Thread itself
+remains alive and can be observed running, but no input or system events reach it. This issue is also
+[acknowledged](https://github.com/chromiumembedded/java-cef/blob/d3de8278626c160d4631db3fda2df7b77cc1e5c4/native/context.cpp#L203)
+by the JCEF developers, though in the context of windowed mode specifically. If anyone knows what the root cause of
+this issue is, please let us know.
+
+### Threads <a name="usage-threads"></a>
+
+CEFFX introduces a dual-thread architecture. The first thread is the JavaFX Application Thread, on which all
+interactions with the JavaFX platform must be performed (using `Platform.runLater(...)`). The second thread is the
+CEF thread, on which all interactions with CEF must be executed (using `CefApp.runLater(...)`).
+
+Performing CEF operations outside the CEF thread may lead to inconsistent behavior: some operations may work (always
+or intermittently), while others may fail. In addition, this can result in CEF-related exceptions being thrown.
+
+As a rule of thumb, if something does not work as expected, it is recommended to first check which thread is being used.
+
+## Code Building <a name="code-building"></a>
+
+To build the library use the following commands.
+
+1. Clone the repository
+
+```
+git clone https://github.com/techsenger/ceffx
+cd ceffx // project root directory
+```
+
+2. Build native code
+
+```
+# Create and enter the `build` directory. The `build` directory name is required by other tooling and should not be changed.
+cd native && mkdir build && cd build
+
+# Linux: Generate 64-bit Unix Makefiles.
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+# Build using Make.
+make -j4
+
+# MacOS: Generate 64-bit Xcode project files.
+cmake -G "Xcode" -DPROJECT_ARCH="x86_64" ..
+# Open ceffx.xcodeproj in Xcode
+# - Select Scheme > Edit Scheme and change the "Build Configuration" to "Release"
+# - Select Product > Build.
+
+# MacOS: Generate ARM64 Xcode project files.
+cmake -G "Xcode" -DPROJECT_ARCH="arm64" ..
+# Open ceffx.xcodeproj in Xcode
+# - Select Scheme > Edit Scheme and change the "Build Configuration" to "Release"
+# - Select Product > Build.
+
+# Windows: Generate 64-bit VS2022 project files.
+cmake -G "Visual Studio 17" -A x64 ..
+# Open ceffx.sln in Visual Studio
+# - Select Build > Configuration Manager and change the "Active solution configuration" to "Release"
+# - Select Build > Build Solution.
+```
+3. Build Java code
+
+```
+# Enter the java directory from the project root
+cd java
+# Compile Maven project
+mvn install
+```
+
+## Running Demo <a name="running-demo"></a>
+
+To run the demo execute the following commands in the root of the project:
+
+    cd java && cd ceffx-demo
+    mvn javafx:run
+
+Please note, that debugger settings are in `tabpanepro-demo/pom.xml` file.
+
+## License <a name="license"></a>
+
+Techsenger CEFFX is licensed under the BSD 3-Clause License. See LICENSE file for details.
+
+## Contributing <a name="contributing"></a>
+
+We welcome all contributions. You can help by reporting bugs, suggesting improvements, or submitting pull requests
+with fixes and new features. If you have any questions, feel free to reach out — we’ll be happy to assist you.
+
+## Support Us <a name="support-us"></a>
+
+You can support our open-source work through [GitHub Sponsors](https://github.com/sponsors/techsenger).
+Your contribution helps us maintain projects, develop new features, and provide ongoing improvements.
+Multiple sponsorship tiers are available, each offering different levels of recognition and benefits.

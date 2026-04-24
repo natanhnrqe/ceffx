@@ -1,0 +1,28 @@
+/*
+ * Copyright 2026 Pavel Castornii.
+ *
+ * Licensed under the BSD 3-Clause License. See LICENSE file for details.
+ */
+
+/*
+    Author     : Pavel Castornii
+*/
+.tab-pane.workspace > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label .icon-view-box,
+.tab-pane.workspace > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label .icon-view-box:empty {
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+}
+
+.tab-pane.workspace > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label .icon-view-box > .image-icon-view {
+    -fx-fit-width: 16;
+    -fx-fit-height: 16;
+    -fx-preserve-ratio: true;
+}
+
+.tab-pane.workspace > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label .icon-view-box > .font-icon-view {
+    -fx-font-size: 16px;
+}

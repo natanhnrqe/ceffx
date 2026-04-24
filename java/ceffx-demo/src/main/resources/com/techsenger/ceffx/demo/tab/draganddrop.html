@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CEF Full Drag Test</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+}
+
+#dropZone {
+    border: 2px dashed green;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.fileItem {
+    width: 200px;
+    padding: 10px;
+    margin: 5px;
+    background: #4a90e2;
+    color: white;
+    cursor: grab;
+    user-select: none;
+}
+
+#log {
+    margin-top: 10px;
+    white-space: pre-wrap;
+    font-size: 12px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+</style>
+</head>
+
+<body>
+<h3>CEF Drag Full Test (Drop → Drag Out)</h3>
+<div id="dropZone">Drop file here</div>
+<div id="files"></div>
+<div id="log"></div>
+
+<script>
+const log = (m) => {
+    document.getElementById("log").innerText += m + "\n";
+};
+const dropZone = document.getElementById("dropZone");
+const filesDiv = document.getElementById("files");
+dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+});
+dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    log("files count: " + e.dataTransfer.files.length);
+    const files = e.dataTransfer.files;
+    for (let f of files) {
+        log("DROP: " + f.name + " (" + f.size + " bytes, " + f.type + ")");
+        // Read file content as base64 immediately on drop
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            // evt.target.result is "data:mime;base64,XXXX"
+            const dataUrl = evt.target.result;
+            const div = document.createElement("div");
+            div.className = "fileItem";
+            div.textContent = f.name;
+            div.dataset.fileName = f.name;
+            div.dataset.mimeType = f.type || "application/octet-stream";
+            div.dataset.dataUrl = dataUrl;
+            enableDragOut(div);
+            filesDiv.appendChild(div);
+            log("READY TO DRAG: " + f.name);
+        };
+        reader.readAsDataURL(f);
+    }
+});
+
+function enableDragOut(el) {
+    el.draggable = true;
+
+    el.addEventListener("dragstart", (e) => {
+        const name = el.dataset.fileName;
+        const mime = el.dataset.mimeType;
+        const dataUrl = el.dataset.dataUrl;
+
+        log("DRAG START: " + name);
+
+        // text/plain - CEF puts this into fragmentText
+        e.dataTransfer.setData("text/plain", name);
+
+        // DownloadURL format: "mimetype:filename:dataurl"
+        // CEF puts this into linkMetadata
+        // Java side will decode base64 and write to temp file
+        e.dataTransfer.setData("DownloadURL", mime + ":" + name + ":" + dataUrl);
+    });
+
+    el.addEventListener("dragend", (e) => {
+        log("DRAG END: dropEffect=" + e.dataTransfer.dropEffect);
+    });
+}
+</script>
+
+</body>
+</html>

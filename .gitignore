@@ -1,0 +1,59 @@
+*.gypcmd
+*.mk
+*.ncb
+*.opensdf
+*.props
+*.pyc
+*.rules
+*.sdf
+*.sln
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.targets
+*.user
+*.vcproj
+*.vcxproj
+*.vcxproj.filters
+*.vpj
+*.vpw
+*.vpwhistu
+*.vtg
+*.xcodeproj
+*.xcworkspace
+*_proto.xml
+*_proto_cpp.xml
+*~
+!Android.mk
+.*.sw?
+.DS_Store
+.classpath
+.cproject
+.gdb_history
+.gdbinit
+.landmines
+.metadata
+.project
+.pydevproject
+# Directory for IDE
+/.settings
+/.idea
+.checkstyle
+cscope.*
+Session.vim
+tags
+Thumbs.db
+# CEF downloads
+/native/cef
+# JCEF generated directories
+/native/build
+# JCEF generated files
+/native/src/ceffx_version.h
+# clang-format downloads
+/native/tools/buildtools/external_bin
+/native/tools/buildtools/linux64/clang-format
+/native/tools/buildtools/mac/clang-format
+/native/tools/buildtools/win/clang-format.exe
+# Maven output directory
+target/
+

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.techsenger.maven.root</groupId>
+        <artifactId>maven-root</artifactId>
+        <version>1.7.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <checkstyle.plugin.skip>true</checkstyle.plugin.skip>
+        <maven.compiler.release>25</maven.compiler.release>
+        <javafx.version>26</javafx.version>
+    </properties>
+
+    <groupId>com.techsenger.ceffx</groupId>
+    <artifactId>ceffx</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>CEFFX</name>
+    <description>A library for integrating the Chromium Embedded Framework into JavaFX</description>
+
+    <licenses>
+        <license>
+            <name>BSD 3-Clause License</name>
+            <url>https://raw.githubusercontent.com/techsenger/ceffx/main/LICENSE.txt</url>
+        </license>
+    </licenses>
+
+    <url>https://github.com/techsenger/ceffx</url>
+
+    <scm>
+        <connection>scm:git:https://github.com/techsenger/ceffx.git</connection>
+        <developerConnection>scm:git:https://github.com/techsenger/ceffx.git</developerConnection>
+        <url>https://github.com/techsenger/ceffx</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/techsenger/ceffx/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <id>pcastornii</id>
+            <name>Pavel Castornii</name>
+        </developer>
+    </developers>
+
+    <repositories>
+        <repository>
+            <id>repsy-snapshots</id>
+            <url>https://repo.repsy.io/mvn/techsenger/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.techsenger.osp.bom</groupId>
+                <artifactId>osp-bom</artifactId>
+                <version>1.8.0-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-base</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-graphics</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-controls</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.techsenger.ceffx</groupId>
+                <artifactId>ceffx-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>ceffx-core</module>
+        <module>ceffx-demo</module>
+    </modules>
+</project>
