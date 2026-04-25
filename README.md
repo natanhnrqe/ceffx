@@ -32,6 +32,7 @@ Key features include:
 * The library uses only JavaFX classes for UI development.
 * Dual-thread architecture — JavaFX thread and a dedicated CEF thread.
 * Supports almost all features of Java CEF.
+* Custom rendering capabilities.
 * A demo application showcasing library features.
 * Comprehensive documentation.
 
