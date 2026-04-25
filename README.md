@@ -157,37 +157,38 @@ To build the library use the following commands.
 
 ```
 git clone https://github.com/techsenger/ceffx
-cd ceffx // project root directory
+# Enter the project root directory
+cd ceffx
 ```
 
 2. Build native code
 
 ```
-# Create and enter the `build` directory. The `build` directory name is required by other tooling and should not be changed.
+# Create and enter the `build` directory (it is required by other tooling and should not be changed)
 cd native && mkdir build && cd build
 
-# Linux: Generate 64-bit Unix Makefiles.
+# Linux: Generate 64-bit Unix Makefiles
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-# Build using Make.
+# Build using Make
 make -j4
 
-# MacOS: Generate 64-bit Xcode project files.
+# MacOS: Generate 64-bit Xcode project files
 cmake -G "Xcode" -DPROJECT_ARCH="x86_64" ..
 # Open ceffx.xcodeproj in Xcode
 # - Select Scheme > Edit Scheme and change the "Build Configuration" to "Release"
-# - Select Product > Build.
+# - Select Product > Build
 
-# MacOS: Generate ARM64 Xcode project files.
+# MacOS: Generate ARM64 Xcode project files
 cmake -G "Xcode" -DPROJECT_ARCH="arm64" ..
 # Open ceffx.xcodeproj in Xcode
 # - Select Scheme > Edit Scheme and change the "Build Configuration" to "Release"
-# - Select Product > Build.
+# - Select Product > Build
 
-# Windows: Generate 64-bit VS2022 project files.
+# Windows: Generate 64-bit VS2022 project files
 cmake -G "Visual Studio 17" -A x64 ..
 # Open ceffx.sln in Visual Studio
 # - Select Build > Configuration Manager and change the "Active solution configuration" to "Release"
-# - Select Build > Build Solution.
+# - Select Build > Build Solution
 ```
 3. Build Java code
 
@@ -205,7 +206,7 @@ To run the demo execute the following commands in the root of the project:
     cd java && cd ceffx-demo
     mvn javafx:run
 
-Please note, that debugger settings are in `tabpanepro-demo/pom.xml` file.
+Please note, that debugger settings are in `ceffx-demo/pom.xml` file.
 
 ## License <a name="license"></a>
 
