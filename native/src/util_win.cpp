@@ -75,49 +75,11 @@ std::string GetTempFileName(const std::string& identifer, bool useParentId) {
 #ifdef USING_JAVA
 
 void AddCefBrowser(CefRefPtr<CefBrowser> browser) {
-  if (!browser.get())
-    return;
-  CefWindowHandle browserHandle = browser->GetHost()->GetWindowHandle();
-  if (!browserHandle)
-    return;
 
-  WaitForSingleObject(g_browsers_lock_, INFINITE);
-  std::pair<CefWindowHandle, CefRefPtr<CefBrowser>> pair =
-      std::make_pair(browserHandle, browser);
-  g_browsers_.insert(pair);
-  ReleaseMutex(g_browsers_lock_);
-
-  if (g_mouse_monitor_ == NULL) {
-    DWORD threadId = GetWindowThreadProcessId(browserHandle, NULL);
-    g_mouse_monitor_ =
-        SetWindowsHookEx(WH_MOUSE, util::MouseProc, NULL, threadId);
-    g_mouse_monitor_refs_ = 1;
-  } else {
-    g_mouse_monitor_refs_++;
-  }
 }
 
 void DestroyCefBrowser(CefRefPtr<CefBrowser> browser) {
-  if (!browser.get())
-    return;
-  CefWindowHandle browserHandle = browser->GetHost()->GetWindowHandle();
-  if (!browserHandle)
-    return;
 
-  WaitForSingleObject(g_browsers_lock_, INFINITE);
-  size_t erased = g_browsers_.erase(browserHandle);
-  DCHECK_EQ(1U, erased);
-  ReleaseMutex(g_browsers_lock_);
-
-  ::DestroyWindow(browserHandle);
-
-  if (g_mouse_monitor_ == NULL)
-    return;
-  g_mouse_monitor_refs_--;
-  if (g_mouse_monitor_refs_ <= 0) {
-    UnhookWindowsHookEx(g_mouse_monitor_);
-    g_mouse_monitor_ = NULL;
-  }
 }
 
 void SetParent(CefWindowHandle browserHandle,
