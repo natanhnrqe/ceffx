@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Snapshot Deploy
 
 on:
   push:
@@ -115,9 +115,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix gsutil dependency
-        run: pip install six
-
       - name: Build native code (macOS arm64)
         run: |
           cd native && mkdir build && cd build
@@ -168,9 +165,6 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Fix gsutil dependency
-        run: pip install six
 
       - name: Build native code (Windows)
         run: |
