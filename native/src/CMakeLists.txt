@@ -325,20 +325,11 @@ if(OS_MAC)
   add_custom_command(
     TARGET ${CEFFX_TARGET}
     POST_BUILD
-    # Build the main app bundle.
-    COMMAND ${ANT_EXECUTABLE}
-            -buildfile ${CMAKE_SOURCE_DIR}
-            -Djdk7.path=${JAVA_DIR}
-            -Dout.path=${CEF_TARGET_OUT_DIR}
-            -Dout.name=${CEFFX_APP_NAME}
-            -Dout.id=org.ceffx.ceffx
-            -Dout.mainclass=tests.detailed.MainFrame
-            bundle
     # Copy the CEF framework into the main app bundle.
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CEF_BINARY_DIR}/Chromium Embedded Framework.framework"
             "${CEFFX_APP}/Contents/Frameworks/Chromium Embedded Framework.framework"
-    # Copy the CEFFX library into the main app bindle.
+    # Copy the CEFFX library into the main app bundle.
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CEF_TARGET_OUT_DIR}/${CEFFX_TARGET_LIBRARY}"
             "${CEFFX_TARGET_LIBRARY_APP_PATH}"
