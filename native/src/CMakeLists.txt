@@ -164,7 +164,6 @@ set(CEFFX_SRCS_MAC
   )
 set(CEFFX_SRCS_WINDOWS
   critical_wait_win.cpp
-  jni_util_win.cpp
   ceffx_dll.rc
   temp_window_win.cc
   temp_window_win.h
