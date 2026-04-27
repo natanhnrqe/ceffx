@@ -97,5 +97,6 @@
     <modules>
         <module>ceffx-core</module>
         <module>ceffx-demo</module>
+        <module>ceffx-natives</module>
     </modules>
 </project>
