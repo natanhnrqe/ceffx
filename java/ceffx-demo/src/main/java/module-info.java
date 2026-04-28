@@ -23,6 +23,7 @@ module com.techsenger.ceffx.demo {
     requires com.techsenger.tabshell.material;
     requires com.techsenger.tabshell.layout;
     requires com.techsenger.tabshell.devtools;
+    requires com.techsenger.ceffx.natives;
     requires com.techsenger.ceffx.core;
 
     requires org.apache.logging.log4j.slf4j2.impl;

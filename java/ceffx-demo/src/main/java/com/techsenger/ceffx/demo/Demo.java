@@ -30,6 +30,7 @@ import com.techsenger.ceffx.demo.tab.BrowserTabFxView;
 import com.techsenger.ceffx.demo.tab.BrowserTabPort;
 import com.techsenger.ceffx.demo.tab.BrowserTabPresenter;
 import com.techsenger.ceffx.demo.tab.ChangeSource;
+import com.techsenger.ceffx.natives.NativeExtractor;
 import com.techsenger.tabpanepro.core.TabPanePro;
 import com.techsenger.tabpanepro.core.skin.TabHeaderAreaPolicy;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin;
@@ -48,6 +49,8 @@ import com.techsenger.tabshell.layout.tabhost.TabHostPresenter;
 import com.techsenger.tabshell.material.style.StyleClasses;
 import com.techsenger.tabshell.material.style.Stylesheet;
 import com.techsenger.tabshell.material.theme.AtlantaFxTheme;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Application;
@@ -95,8 +98,11 @@ public class Demo extends Application {
 
     private static final Object TAB_COMPONENT = new Object();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // #1 Cef
+        var libPath = System.getProperty("java.library.path");
+        // extract native libraries from ceffx-natives
+        NativeExtractor.extract(Path.of(libPath));
         CefApp.startup(args);
         CefApp.addAppHandler(new CefAppHandlerAdapter(null) {
             @Override

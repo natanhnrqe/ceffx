@@ -11,6 +11,7 @@
         <checkstyle.plugin.skip>true</checkstyle.plugin.skip>
         <maven.compiler.release>25</maven.compiler.release>
         <javafx.version>26</javafx.version>
+        <publishing.plugin.exclusions>ceffx-demo</publishing.plugin.exclusions>
     </properties>
 
     <groupId>com.techsenger.ceffx</groupId>
@@ -84,6 +85,32 @@
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-controls</artifactId>
                 <version>${javafx.version}</version>
+            </dependency>
+
+            <!-- natives with all possible classifiers -->
+            <dependency>
+                <groupId>com.techsenger.ceffx</groupId>
+                <artifactId>ceffx-natives</artifactId>
+                <version>${project.version}</version>
+                <classifier>linux</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.techsenger.ceffx</groupId>
+                <artifactId>ceffx-natives</artifactId>
+                <version>${project.version}</version>
+                <classifier>win</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.techsenger.ceffx</groupId>
+                <artifactId>ceffx-natives</artifactId>
+                <version>${project.version}</version>
+                <classifier>mac</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.techsenger.ceffx</groupId>
+                <artifactId>ceffx-natives</artifactId>
+                <version>${project.version}</version>
+                <classifier>mac-aarch64</classifier>
             </dependency>
 
             <dependency>

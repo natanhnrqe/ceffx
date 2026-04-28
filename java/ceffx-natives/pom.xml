@@ -23,7 +23,6 @@
             </activation>
             <properties>
                 <natives.classifier>linux</natives.classifier>
-                <natives.lib.dir>${basedir}/../native/build/src/Release</natives.lib.dir>
             </properties>
         </profile>
         <profile>
@@ -36,7 +35,6 @@
             </activation>
             <properties>
                 <natives.classifier>mac</natives.classifier>
-                <natives.lib.dir>${basedir}/../native/build/src/Release</natives.lib.dir>
             </properties>
         </profile>
         <profile>
@@ -49,7 +47,6 @@
             </activation>
             <properties>
                 <natives.classifier>mac-aarch64</natives.classifier>
-                <natives.lib.dir>${basedir}/../native/build/src/Release</natives.lib.dir>
             </properties>
         </profile>
         <profile>
@@ -61,13 +58,21 @@
             </activation>
             <properties>
                 <natives.classifier>win</natives.classifier>
-                <natives.lib.dir>${basedir}/../native/build/src/Release</natives.lib.dir>
             </properties>
         </profile>
     </profiles>
 
     <build>
         <plugins>
+        <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+                <includes>
+                    <!-- The JAR without a classifier contains no code -->
+                    <include>__nothing__/**</include>
+                </includes>
+            </configuration>
+        </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -82,7 +87,7 @@
                             <outputDirectory>${project.build.outputDirectory}/native/libs</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${natives.lib.dir}</directory>
+                                    <directory>${basedir}/../native/build/src/Release</directory>
                                     <includes>
                                         <include>libceffx.so</include>
                                         <include>libceffx.dylib</include>

@@ -13,7 +13,65 @@
     <name>CEFFX - Demo</name>
     <description>Demo application</description>
 
+    <profiles>
+        <profile>
+            <id>natives-linux</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <properties>
+                <natives.classifier>linux</natives.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>natives-mac</id>
+            <activation>
+                <os>
+                    <name>Mac OS X</name>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <natives.classifier>mac</natives.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>natives-mac-aarch64</id>
+            <activation>
+                <os>
+                    <name>Mac OS X</name>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <natives.classifier>mac-aarch64</natives.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>natives-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <natives.classifier>win</natives.classifier>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
+        <dependency>
+            <groupId>com.techsenger.ceffx</groupId>
+            <artifactId>ceffx-natives</artifactId>
+            <classifier>${natives.classifier}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.techsenger.ceffx</groupId>
+            <artifactId>ceffx-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -29,10 +87,6 @@
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-materialdesign2-pack</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.techsenger.ceffx</groupId>
-            <artifactId>ceffx-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.techsenger.patternfx</groupId>
