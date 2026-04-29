@@ -110,12 +110,12 @@ This project will soon be available on Maven Central:
 ```
 The `ceffx.classifier` uses the same values as the OpenJFX classifiers:
 
-* linux (built using the `ubuntu-22.04` GitHub runner)
-* win (built using the `windows-2022` GitHub runner)
-* mac (built using the `macos-15-intel` GitHub runner)
-* mac-aarch64 (built using the `macos-14-arm64` GitHub runner)
+* linux (built using the `ubuntu-22.04` runner)
+* win (built using the `windows-2022` runner)
+* mac (built using the `macos-15-intel` runner)
+* mac-aarch64 (built using the `macos-15-arm64` runner)
 
-Note that Maven can determine the `classifier` using a `profile`. See an example in the demo [pom.xml](java/ceffx-demo/pom.xml).
+Note that Maven can set the `classifier` using a `profile`. See an example in the demo [pom.xml](java/ceffx-demo/pom.xml).
 
 To use snapshot versions, add our repository:
 
@@ -182,7 +182,7 @@ CEFFX provides prebuilt native libraries, making it easy to integrate CEF into a
 to compile it from source. This section describes all the steps required to set it up.
 
 1. Download the minimal CEF distribution from [CEF](https://cef-builds.spotifycdn.com/index.html) version
-`146.0.10+g8219561+chromium-146.0.7680.179`. Use the Version Filter to locate the correct version. Please note that
+`146.0.10+g8219561+chromium-146.0.7680.179`. Use the `Version Filter` to locate the correct version. Please note that
 other versions will not work, as CEFFX includes a built-in version check.
 2. Create a directory on your system, for example: `/foo/cef`.
 3. Copy the `contents` of the `Release` folder from the archive into `/foo/cef`.
@@ -205,7 +205,7 @@ resources.pak
 v8_context_snapshot.bin
 vk_swiftshader_icd.json
 ```
-5. Add the dependencies to your JavaFX project as described in the [Dependencies](#dependencies) section.
+5. Add the dependencies to your JavaFX project as described in the [dependencies](#dependencies) section.
 6. On the first run, you need to extract the native binaries from the `ceffx-natives` module into `/foo/cef`.
    Use `NativeExtractor` provided by the `ceffx-natives` module.
 7. Set the system property: `-Djava.library.path=/foo/cef`

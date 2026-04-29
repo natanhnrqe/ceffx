@@ -108,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-macos-arm64:
-    runs-on: macos-14-arm64
+    runs-on: macos-15-arm64
     permissions:
       contents: read
       packages: write
