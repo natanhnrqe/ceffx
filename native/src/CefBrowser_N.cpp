@@ -1,6 +1,9 @@
 // Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
+#include <iostream>
+#include <cstdio>
+
 #include "CefBrowser_N.h"
 #include "include/base/cef_callback.h"
 #include "include/cef_browser.h"
@@ -35,152 +38,120 @@
 #undef MOUSE_MOVED
 #endif
 namespace {
-int GetCefModifiers(JNIEnv* env, jclass cls, int modifiers) {
-  JNI_STATIC_DEFINE_INT_RV(env, cls, ALT_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON1_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON2_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON3_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, CTRL_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, META_DOWN_MASK, 0);
-  JNI_STATIC_DEFINE_INT_RV(env, cls, SHIFT_DOWN_MASK, 0);
-  int cef_modifiers = 0;
-  if (modifiers & JNI_STATIC(ALT_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_ALT_DOWN;
-  if (modifiers & JNI_STATIC(BUTTON1_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
-  if (modifiers & JNI_STATIC(BUTTON2_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
-  if (modifiers & JNI_STATIC(BUTTON3_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
-  if (modifiers & JNI_STATIC(CTRL_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
-  if (modifiers & JNI_STATIC(META_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
-  if (modifiers & JNI_STATIC(SHIFT_DOWN_MASK))
-    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
-  return cef_modifiers;
+
+// ============================================================================
+// Platform-specific KeyCode conversion functions
+// ============================================================================
+
+#if defined(OS_WIN)
+
+int JavaFXKeyCodeToWindowsKeyCode(int javafx_key_code) {
+  // Mapping of JavaFX KeyCode values to Windows virtual key codes
+  switch (javafx_key_code) {
+    case 0x08: return VK_BACK;           // BACK_SPACE
+    case 0x09: return VK_TAB;            // TAB
+    case 0x0C: return VK_CLEAR;          // CLEAR
+    case 0x0A: return VK_RETURN;         // ENTER
+    case 0x10: return VK_SHIFT;          // SHIFT
+    case 0x11: return VK_CONTROL;        // CONTROL
+    case 0x12: return VK_MENU;           // ALT
+    case 0x13: return VK_PAUSE;          // PAUSE
+    case 0x14: return VK_CAPITAL;        // CAPS
+    case 0x1B: return VK_ESCAPE;         // ESCAPE
+    case 0x20: return VK_SPACE;          // SPACE
+    case 0x21: return VK_PRIOR;          // PAGE_UP
+    case 0x22: return VK_NEXT;           // PAGE_DOWN
+    case 0x23: return VK_END;            // END
+    case 0x24: return VK_HOME;           // HOME
+    case 0x25: return VK_LEFT;           // LEFT
+    case 0x26: return VK_UP;             // UP
+    case 0x27: return VK_RIGHT;          // RIGHT
+    case 0x28: return VK_DOWN;           // DOWN
+    case 0x2C: return VK_SNAPSHOT;       // PRINTSCREEN
+    case 0x2D: return VK_INSERT;         // INSERT
+    case 0x7F: return VK_DELETE;         // DELETE
+    case 0x30: return '0';               // DIGIT0
+    case 0x31: return '1';               // DIGIT1
+    case 0x32: return '2';               // DIGIT2
+    case 0x33: return '3';               // DIGIT3
+    case 0x34: return '4';               // DIGIT4
+    case 0x35: return '5';               // DIGIT5
+    case 0x36: return '6';               // DIGIT6
+    case 0x37: return '7';               // DIGIT7
+    case 0x38: return '8';               // DIGIT8
+    case 0x39: return '9';               // DIGIT9
+    case 0x41: return 'A';               // A
+    case 0x42: return 'B';               // B
+    case 0x43: return 'C';               // C
+    case 0x44: return 'D';               // D
+    case 0x45: return 'E';               // E
+    case 0x46: return 'F';               // F
+    case 0x47: return 'G';               // G
+    case 0x48: return 'H';               // H
+    case 0x49: return 'I';               // I
+    case 0x4A: return 'J';               // J
+    case 0x4B: return 'K';               // K
+    case 0x4C: return 'L';               // L
+    case 0x4D: return 'M';               // M
+    case 0x4E: return 'N';               // N
+    case 0x4F: return 'O';               // O
+    case 0x50: return 'P';               // P
+    case 0x51: return 'Q';               // Q
+    case 0x52: return 'R';               // R
+    case 0x53: return 'S';               // S
+    case 0x54: return 'T';               // T
+    case 0x55: return 'U';               // U
+    case 0x56: return 'V';               // V
+    case 0x57: return 'W';               // W
+    case 0x58: return 'X';               // X
+    case 0x59: return 'Y';               // Y
+    case 0x5A: return 'Z';               // Z
+    case 0x5B: return VK_LWIN;           // OPEN_BRACKET/LWIN
+    case 0x5C: return VK_OEM_5;          // BACK_SLASH
+    case 0x5D: return VK_RWIN;           // CLOSE_BRACKET/RWIN
+    case 0x60: return VK_NUMPAD0;        // NUMPAD0
+    case 0x61: return VK_NUMPAD1;        // NUMPAD1
+    case 0x62: return VK_NUMPAD2;        // NUMPAD2
+    case 0x63: return VK_NUMPAD3;        // NUMPAD3
+    case 0x64: return VK_NUMPAD4;        // NUMPAD4
+    case 0x65: return VK_NUMPAD5;        // NUMPAD5
+    case 0x66: return VK_NUMPAD6;        // NUMPAD6
+    case 0x67: return VK_NUMPAD7;        // NUMPAD7
+    case 0x68: return VK_NUMPAD8;        // NUMPAD8
+    case 0x69: return VK_NUMPAD9;        // NUMPAD9
+    case 0x6A: return VK_MULTIPLY;       // MULTIPLY
+    case 0x6B: return VK_ADD;            // ADD
+    case 0x6C: return VK_SEPARATOR;      // SEPARATOR
+    case 0x6D: return VK_SUBTRACT;       // SUBTRACT
+    case 0x6E: return VK_DECIMAL;        // DECIMAL
+    case 0x6F: return VK_DIVIDE;         // DIVIDE
+    case 0x70: return VK_F1;             // F1
+    case 0x71: return VK_F2;             // F2
+    case 0x72: return VK_F3;             // F3
+    case 0x73: return VK_F4;             // F4
+    case 0x74: return VK_F5;             // F5
+    case 0x75: return VK_F6;             // F6
+    case 0x76: return VK_F7;             // F7
+    case 0x77: return VK_F8;             // F8
+    case 0x78: return VK_F9;             // F9
+    case 0x79: return VK_F10;            // F10
+    case 0x7A: return VK_F11;            // F11
+    case 0x7B: return VK_F12;            // F12
+    case 0x90: return VK_NUMLOCK;        // NUM_LOCK
+    case 0x91: return VK_SCROLL;         // SCROLL_LOCK
+    case 0x9B: return VK_INSERT;         // INSERT (duplicate)
+    case 0x9D: return VK_APPS;           // CONTEXT_MENU
+    case 0x020C: return VK_LWIN;         // WINDOWS
+    case 0xFF7E: return VK_MENU;         // ALT_GRAPH
+    case 0x300: return VK_LWIN;          // COMMAND
+    default: return 0;
+  }
 }
 
-int GetCefModifiersFromJavaFX(JNIEnv* env, jobject event) {
-  int cef_modifiers = 0;
-
-  jclass eventClass = env->GetObjectClass(event);
-  if (!eventClass)
-    return 0;
-
-  jmethodID isCtrlDownMethod = env->GetMethodID(eventClass, "isControlDown", "()Z");
-  jmethodID isShiftDownMethod = env->GetMethodID(eventClass, "isShiftDown", "()Z");
-  jmethodID isAltDownMethod = env->GetMethodID(eventClass, "isAltDown", "()Z");
-  jmethodID isMetaDownMethod = env->GetMethodID(eventClass, "isMetaDown", "()Z");
-
-  if (isCtrlDownMethod && env->CallBooleanMethod(event, isCtrlDownMethod))
-    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
-  if (isShiftDownMethod && env->CallBooleanMethod(event, isShiftDownMethod))
-    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
-  if (isAltDownMethod && env->CallBooleanMethod(event, isAltDownMethod))
-    cef_modifiers |= EVENTFLAG_ALT_DOWN;
-  if (isMetaDownMethod && env->CallBooleanMethod(event, isMetaDownMethod))
-    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
-
-  return cef_modifiers;
-}
-
-int GetCefModifiersFromJavaFXMouse(JNIEnv* env, jobject event) {
-  int cef_modifiers = 0;
-
-  jclass eventClass = env->GetObjectClass(event);
-  if (!eventClass)
-    return 0;
-
-  jmethodID isPrimaryDownMethod = env->GetMethodID(eventClass, "isPrimaryButtonDown", "()Z");
-  jmethodID isSecondaryDownMethod = env->GetMethodID(eventClass, "isSecondaryButtonDown", "()Z");
-  jmethodID isMiddleDownMethod = env->GetMethodID(eventClass, "isMiddleButtonDown", "()Z");
-
-  jmethodID isCtrlDownMethod = env->GetMethodID(eventClass, "isControlDown", "()Z");
-  jmethodID isShiftDownMethod = env->GetMethodID(eventClass, "isShiftDown", "()Z");
-  jmethodID isAltDownMethod = env->GetMethodID(eventClass, "isAltDown", "()Z");
-  jmethodID isMetaDownMethod = env->GetMethodID(eventClass, "isMetaDown", "()Z");
-
-  if (isPrimaryDownMethod && env->CallBooleanMethod(event, isPrimaryDownMethod))
-    cef_modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
-  if (isSecondaryDownMethod && env->CallBooleanMethod(event, isSecondaryDownMethod))
-    cef_modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
-  if (isMiddleDownMethod && env->CallBooleanMethod(event, isMiddleDownMethod))
-    cef_modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
-
-  if (isCtrlDownMethod && env->CallBooleanMethod(event, isCtrlDownMethod))
-    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
-  if (isShiftDownMethod && env->CallBooleanMethod(event, isShiftDownMethod))
-    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
-  if (isAltDownMethod && env->CallBooleanMethod(event, isAltDownMethod))
-    cef_modifiers |= EVENTFLAG_ALT_DOWN;
-  if (isMetaDownMethod && env->CallBooleanMethod(event, isMetaDownMethod))
-    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
-
-  return cef_modifiers;
-}
-
-static std::unordered_map<std::string, int> FX_TO_VK = {
-    // letters
-    {"A", 0x41}, {"B", 0x42}, {"C", 0x43}, {"D", 0x44},
-    {"E", 0x45}, {"F", 0x46}, {"G", 0x47}, {"H", 0x48},
-    {"I", 0x49}, {"J", 0x4A}, {"K", 0x4B}, {"L", 0x4C},
-    {"M", 0x4D}, {"N", 0x4E}, {"O", 0x4F}, {"P", 0x50},
-    {"Q", 0x51}, {"R", 0x52}, {"S", 0x53}, {"T", 0x54},
-    {"U", 0x55}, {"V", 0x56}, {"W", 0x57}, {"X", 0x58},
-    {"Y", 0x59}, {"Z", 0x5A},
-
-    // numbers
-    {"DIGIT0", 0x30}, {"DIGIT1", 0x31}, {"DIGIT2", 0x32},
-    {"DIGIT3", 0x33}, {"DIGIT4", 0x34}, {"DIGIT5", 0x35},
-    {"DIGIT6", 0x36}, {"DIGIT7", 0x37}, {"DIGIT8", 0x38},
-    {"DIGIT9", 0x39},
-
-    // arrows
-    {"LEFT", 0x25},
-    {"UP", 0x26},
-    {"RIGHT", 0x27},
-    {"DOWN", 0x28},
-
-    // control keys
-    {"ENTER", 0x0D},
-    {"TAB", 0x09},
-    {"ESCAPE", 0x1B},
-    {"SPACE", 0x20},
-
-    {"BACK_SPACE", 0x08},
-    {"DELETE", 0x2E},
-
-    {"HOME", 0x24},
-    {"END", 0x23},
-    {"PAGE_UP", 0x21},
-    {"PAGE_DOWN", 0x22},
-
-    // modifiers (НЕ обязательно, но пусть будут)
-    {"SHIFT", 0x10},
-    {"CONTROL", 0x11},
-    {"ALT", 0x12},
-    {"META", 0x5B},
-
-    // function keys
-    {"F1", 0x70}, {"F2", 0x71}, {"F3", 0x72}, {"F4", 0x73},
-    {"F5", 0x74}, {"F6", 0x75}, {"F7", 0x76}, {"F8", 0x77},
-    {"F9", 0x78}, {"F10", 0x79}, {"F11", 0x7A}, {"F12", 0x7B},
-
-    // punctuation
-    {"COMMA", 0xBC},
-    {"PERIOD", 0xBE},
-    {"SEMICOLON", 0xBA},
-    {"SLASH", 0xBF},
-    {"BACK_SLASH", 0xDC},
-    {"OPEN_BRACKET", 0xDB},
-    {"CLOSE_BRACKET", 0xDD},
-    {"MINUS", 0xBD},
-    {"EQUALS", 0xBB},
-    {"GRAVE", 0xC0}
-};
+#endif  // defined(OS_WIN)
 
 #if defined(OS_LINUX)
+
 // From ui/events/keycodes/keyboard_codes_posix.h.
 enum KeyboardCode {
   VKEY_BACK = 0x08,
@@ -257,7 +228,7 @@ enum KeyboardCode {
   VKEY_Y = 0x59,
   VKEY_Z = 0x5A,
   VKEY_LWIN = 0x5B,
-  VKEY_COMMAND = VKEY_LWIN,  // Provide the Mac name for convenience.
+  VKEY_COMMAND = VKEY_LWIN,
   VKEY_RWIN = 0x5C,
   VKEY_APPS = 0x5D,
   VKEY_SLEEP = 0x5F,
@@ -340,8 +311,8 @@ enum KeyboardCode {
   VKEY_OEM_7 = 0xDE,
   VKEY_OEM_8 = 0xDF,
   VKEY_OEM_102 = 0xE2,
-  VKEY_OEM_103 = 0xE3,  // GTV KEYCODE_MEDIA_REWIND
-  VKEY_OEM_104 = 0xE4,  // GTV KEYCODE_MEDIA_FAST_FORWARD
+  VKEY_OEM_103 = 0xE3,
+  VKEY_OEM_104 = 0xE4,
   VKEY_PROCESSKEY = 0xE5,
   VKEY_PACKET = 0xE7,
   VKEY_DBE_SBCSCHAR = 0xF3,
@@ -356,23 +327,749 @@ enum KeyboardCode {
   VKEY_PA1 = 0xFD,
   VKEY_OEM_CLEAR = 0xFE,
   VKEY_UNKNOWN = 0,
-  // POSIX specific VKEYs. Note that as of Windows SDK 7.1, 0x97-9F, 0xD8-DA,
-  // and 0xE8 are unassigned.
   VKEY_WLAN = 0x97,
   VKEY_POWER = 0x98,
   VKEY_BRIGHTNESS_DOWN = 0xD8,
   VKEY_BRIGHTNESS_UP = 0xD9,
   VKEY_KBD_BRIGHTNESS_DOWN = 0xDA,
   VKEY_KBD_BRIGHTNESS_UP = 0xE8,
-  // Windows does not have a specific key code for AltGr. We use the unused 0xE1
-  // (VK_OEM_AX) code to represent AltGr, matching the behaviour of Firefox on
-  // Linux.
   VKEY_ALTGR = 0xE1,
-  // Windows does not have a specific key code for Compose. We use the unused
-  // 0xE6 (VK_ICO_CLEAR) code to represent Compose.
   VKEY_COMPOSE = 0xE6,
 };
+
+// From ui/events/keycodes/keyboard_code_conversion_x.cc.
+KeyboardCode KeyboardCodeFromXKeysym(unsigned int keysym) {
+  switch (keysym) {
+    case XK_BackSpace:
+      return VKEY_BACK;
+    case XK_Delete:
+    case XK_KP_Delete:
+      return VKEY_DELETE;
+    case XK_Tab:
+    case XK_KP_Tab:
+    case XK_ISO_Left_Tab:
+    case XK_3270_BackTab:
+      return VKEY_TAB;
+    case XK_Linefeed:
+    case XK_Return:
+    case XK_KP_Enter:
+    case XK_ISO_Enter:
+      return VKEY_RETURN;
+    case XK_Clear:
+    case XK_KP_Begin:
+      return VKEY_CLEAR;
+    case XK_KP_Space:
+    case XK_space:
+      return VKEY_SPACE;
+    case XK_Home:
+    case XK_KP_Home:
+      return VKEY_HOME;
+    case XK_End:
+    case XK_KP_End:
+      return VKEY_END;
+    case XK_Page_Up:
+    case XK_KP_Page_Up:
+      return VKEY_PRIOR;
+    case XK_Page_Down:
+    case XK_KP_Page_Down:
+      return VKEY_NEXT;
+    case XK_Left:
+    case XK_KP_Left:
+      return VKEY_LEFT;
+    case XK_Right:
+    case XK_KP_Right:
+      return VKEY_RIGHT;
+    case XK_Down:
+    case XK_KP_Down:
+      return VKEY_DOWN;
+    case XK_Up:
+    case XK_KP_Up:
+      return VKEY_UP;
+    case XK_Escape:
+      return VKEY_ESCAPE;
+    case XK_Kana_Lock:
+    case XK_Kana_Shift:
+      return VKEY_KANA;
+    case XK_Hangul:
+      return VKEY_HANGUL;
+    case XK_Hangul_Hanja:
+      return VKEY_HANJA;
+    case XK_Kanji:
+      return VKEY_KANJI;
+    case XK_Henkan:
+      return VKEY_CONVERT;
+    case XK_Muhenkan:
+      return VKEY_NONCONVERT;
+    case XK_Zenkaku_Hankaku:
+      return VKEY_DBE_DBCSCHAR;
+    case XK_A:
+    case XK_a:
+      return VKEY_A;
+    case XK_B:
+    case XK_b:
+      return VKEY_B;
+    case XK_C:
+    case XK_c:
+      return VKEY_C;
+    case XK_D:
+    case XK_d:
+      return VKEY_D;
+    case XK_E:
+    case XK_e:
+      return VKEY_E;
+    case XK_F:
+    case XK_f:
+      return VKEY_F;
+    case XK_G:
+    case XK_g:
+      return VKEY_G;
+    case XK_H:
+    case XK_h:
+      return VKEY_H;
+    case XK_I:
+    case XK_i:
+      return VKEY_I;
+    case XK_J:
+    case XK_j:
+      return VKEY_J;
+    case XK_K:
+    case XK_k:
+      return VKEY_K;
+    case XK_L:
+    case XK_l:
+      return VKEY_L;
+    case XK_M:
+    case XK_m:
+      return VKEY_M;
+    case XK_N:
+    case XK_n:
+      return VKEY_N;
+    case XK_O:
+    case XK_o:
+      return VKEY_O;
+    case XK_P:
+    case XK_p:
+      return VKEY_P;
+    case XK_Q:
+    case XK_q:
+      return VKEY_Q;
+    case XK_R:
+    case XK_r:
+      return VKEY_R;
+    case XK_S:
+    case XK_s:
+      return VKEY_S;
+    case XK_T:
+    case XK_t:
+      return VKEY_T;
+    case XK_U:
+    case XK_u:
+      return VKEY_U;
+    case XK_V:
+    case XK_v:
+      return VKEY_V;
+    case XK_W:
+    case XK_w:
+      return VKEY_W;
+    case XK_X:
+    case XK_x:
+      return VKEY_X;
+    case XK_Y:
+    case XK_y:
+      return VKEY_Y;
+    case XK_Z:
+    case XK_z:
+      return VKEY_Z;
+    case XK_0:
+    case XK_1:
+    case XK_2:
+    case XK_3:
+    case XK_4:
+    case XK_5:
+    case XK_6:
+    case XK_7:
+    case XK_8:
+    case XK_9:
+      return static_cast<KeyboardCode>(VKEY_0 + (keysym - XK_0));
+    case XK_parenright:
+      return VKEY_0;
+    case XK_exclam:
+      return VKEY_1;
+    case XK_at:
+      return VKEY_2;
+    case XK_numbersign:
+      return VKEY_3;
+    case XK_dollar:
+      return VKEY_4;
+    case XK_percent:
+      return VKEY_5;
+    case XK_asciicircum:
+      return VKEY_6;
+    case XK_ampersand:
+      return VKEY_7;
+    case XK_asterisk:
+      return VKEY_8;
+    case XK_parenleft:
+      return VKEY_9;
+    case XK_KP_0:
+    case XK_KP_1:
+    case XK_KP_2:
+    case XK_KP_3:
+    case XK_KP_4:
+    case XK_KP_5:
+    case XK_KP_6:
+    case XK_KP_7:
+    case XK_KP_8:
+    case XK_KP_9:
+      return static_cast<KeyboardCode>(VKEY_NUMPAD0 + (keysym - XK_KP_0));
+    case XK_multiply:
+    case XK_KP_Multiply:
+      return VKEY_MULTIPLY;
+    case XK_KP_Add:
+      return VKEY_ADD;
+    case XK_KP_Separator:
+      return VKEY_SEPARATOR;
+    case XK_KP_Subtract:
+      return VKEY_SUBTRACT;
+    case XK_KP_Decimal:
+      return VKEY_DECIMAL;
+    case XK_KP_Divide:
+      return VKEY_DIVIDE;
+    case XK_KP_Equal:
+    case XK_equal:
+    case XK_plus:
+      return VKEY_OEM_PLUS;
+    case XK_comma:
+    case XK_less:
+      return VKEY_OEM_COMMA;
+    case XK_minus:
+    case XK_underscore:
+      return VKEY_OEM_MINUS;
+    case XK_greater:
+    case XK_period:
+      return VKEY_OEM_PERIOD;
+    case XK_colon:
+    case XK_semicolon:
+      return VKEY_OEM_1;
+    case XK_question:
+    case XK_slash:
+      return VKEY_OEM_2;
+    case XK_asciitilde:
+    case XK_quoteleft:
+      return VKEY_OEM_3;
+    case XK_bracketleft:
+    case XK_braceleft:
+      return VKEY_OEM_4;
+    case XK_backslash:
+    case XK_bar:
+      return VKEY_OEM_5;
+    case XK_bracketright:
+    case XK_braceright:
+      return VKEY_OEM_6;
+    case XK_quoteright:
+    case XK_quotedbl:
+      return VKEY_OEM_7;
+    case XK_ISO_Level5_Shift:
+      return VKEY_OEM_8;
+    case XK_Shift_L:
+    case XK_Shift_R:
+      return VKEY_SHIFT;
+    case XK_Control_L:
+    case XK_Control_R:
+      return VKEY_CONTROL;
+    case XK_Meta_L:
+    case XK_Meta_R:
+    case XK_Alt_L:
+    case XK_Alt_R:
+      return VKEY_MENU;
+    case XK_ISO_Level3_Shift:
+      return VKEY_ALTGR;
+    case XK_Multi_key:
+      return VKEY_COMPOSE;
+    case XK_Pause:
+      return VKEY_PAUSE;
+    case XK_Caps_Lock:
+      return VKEY_CAPITAL;
+    case XK_Num_Lock:
+      return VKEY_NUMLOCK;
+    case XK_Scroll_Lock:
+      return VKEY_SCROLL;
+    case XK_Select:
+      return VKEY_SELECT;
+    case XK_Print:
+      return VKEY_PRINT;
+    case XK_Execute:
+      return VKEY_EXECUTE;
+    case XK_Insert:
+    case XK_KP_Insert:
+      return VKEY_INSERT;
+    case XK_Help:
+      return VKEY_HELP;
+    case XK_Super_L:
+      return VKEY_LWIN;
+    case XK_Super_R:
+      return VKEY_RWIN;
+    case XK_Menu:
+      return VKEY_APPS;
+    case XK_F1:
+    case XK_F2:
+    case XK_F3:
+    case XK_F4:
+    case XK_F5:
+    case XK_F6:
+    case XK_F7:
+    case XK_F8:
+    case XK_F9:
+    case XK_F10:
+    case XK_F11:
+    case XK_F12:
+    case XK_F13:
+    case XK_F14:
+    case XK_F15:
+    case XK_F16:
+    case XK_F17:
+    case XK_F18:
+    case XK_F19:
+    case XK_F20:
+    case XK_F21:
+    case XK_F22:
+    case XK_F23:
+    case XK_F24:
+      return static_cast<KeyboardCode>(VKEY_F1 + (keysym - XK_F1));
+    case XK_KP_F1:
+    case XK_KP_F2:
+    case XK_KP_F3:
+    case XK_KP_F4:
+      return static_cast<KeyboardCode>(VKEY_F1 + (keysym - XK_KP_F1));
+    case XK_guillemotleft:
+    case XK_guillemotright:
+    case XK_degree:
+    case XK_ugrave:
+    case XK_Ugrave:
+    case XK_brokenbar:
+      return VKEY_OEM_102;
+    case XF86XK_Tools:
+      return VKEY_F13;
+    case XF86XK_Launch5:
+      return VKEY_F14;
+    case XF86XK_Launch6:
+      return VKEY_F15;
+    case XF86XK_Launch7:
+      return VKEY_F16;
+    case XF86XK_Launch8:
+      return VKEY_F17;
+    case XF86XK_Launch9:
+      return VKEY_F18;
+    case XF86XK_Refresh:
+    case XF86XK_History:
+    case XF86XK_OpenURL:
+    case XF86XK_AddFavorite:
+    case XF86XK_Go:
+    case XF86XK_ZoomIn:
+    case XF86XK_ZoomOut:
+      return VKEY_UNKNOWN;
+    case XF86XK_Back:
+      return VKEY_BROWSER_BACK;
+    case XF86XK_Forward:
+      return VKEY_BROWSER_FORWARD;
+    case XF86XK_Reload:
+      return VKEY_BROWSER_REFRESH;
+    case XF86XK_Stop:
+      return VKEY_BROWSER_STOP;
+    case XF86XK_Search:
+      return VKEY_BROWSER_SEARCH;
+    case XF86XK_Favorites:
+      return VKEY_BROWSER_FAVORITES;
+    case XF86XK_HomePage:
+      return VKEY_BROWSER_HOME;
+    case XF86XK_AudioMute:
+      return VKEY_VOLUME_MUTE;
+    case XF86XK_AudioLowerVolume:
+      return VKEY_VOLUME_DOWN;
+    case XF86XK_AudioRaiseVolume:
+      return VKEY_VOLUME_UP;
+    case XF86XK_AudioNext:
+      return VKEY_MEDIA_NEXT_TRACK;
+    case XF86XK_AudioPrev:
+      return VKEY_MEDIA_PREV_TRACK;
+    case XF86XK_AudioStop:
+      return VKEY_MEDIA_STOP;
+    case XF86XK_AudioPlay:
+      return VKEY_MEDIA_PLAY_PAUSE;
+    case XF86XK_Mail:
+      return VKEY_MEDIA_LAUNCH_MAIL;
+    case XF86XK_LaunchA:
+      return VKEY_MEDIA_LAUNCH_APP1;
+    case XF86XK_LaunchB:
+    case XF86XK_Calculator:
+      return VKEY_MEDIA_LAUNCH_APP2;
+    case XF86XK_WLAN:
+      return VKEY_WLAN;
+    case XF86XK_PowerOff:
+      return VKEY_POWER;
+    case XF86XK_MonBrightnessDown:
+      return VKEY_BRIGHTNESS_DOWN;
+    case XF86XK_MonBrightnessUp:
+      return VKEY_BRIGHTNESS_UP;
+    case XF86XK_KbdBrightnessDown:
+      return VKEY_KBD_BRIGHTNESS_DOWN;
+    case XF86XK_KbdBrightnessUp:
+      return VKEY_KBD_BRIGHTNESS_UP;
+  }
+  return VKEY_UNKNOWN;
+}
+
+KeyboardCode GetWindowsKeyCodeWithoutLocation(KeyboardCode key_code) {
+  switch (key_code) {
+    case VKEY_LCONTROL:
+    case VKEY_RCONTROL:
+      return VKEY_CONTROL;
+    case VKEY_LSHIFT:
+    case VKEY_RSHIFT:
+      return VKEY_SHIFT;
+    case VKEY_LMENU:
+    case VKEY_RMENU:
+      return VKEY_MENU;
+    default:
+      return key_code;
+  }
+}
+
+int GetControlCharacter(KeyboardCode windows_key_code, bool shift) {
+  if (windows_key_code >= VKEY_A && windows_key_code <= VKEY_Z) {
+    return windows_key_code - VKEY_A + 1;
+  }
+  if (shift) {
+    switch (windows_key_code) {
+      case VKEY_2:
+        return 0;
+      case VKEY_6:
+        return 0x1E;
+      case VKEY_OEM_MINUS:
+        return 0x1F;
+      default:
+        return 0;
+    }
+  } else {
+    switch (windows_key_code) {
+      case VKEY_OEM_4:
+        return 0x1B;
+      case VKEY_OEM_5:
+        return 0x1C;
+      case VKEY_OEM_6:
+        return 0x1D;
+      case VKEY_RETURN:
+        return 0x0A;
+      default:
+        return 0;
+    }
+  }
+}
+
+unsigned int JavaFXKeyCodeToXKeysym(int javafx_key_code) {
+  // Mapping of JavaFX KeyCode values to X11 keysyms
+  switch (javafx_key_code) {
+    case 0x08: return XK_BackSpace;
+    case 0x09: return XK_Tab;
+    case 0x0C: return XK_Clear;
+    case 0x0A: return XK_Return;
+    case 0x10: return XK_Shift_L;
+    case 0x11: return XK_Control_L;
+    case 0x12: return XK_Alt_L;
+    case 0x13: return XK_Pause;
+    case 0x14: return XK_Caps_Lock;
+    case 0x1B: return XK_Escape;
+    case 0x20: return XK_space;
+    case 0x21: return XK_Page_Up;
+    case 0x22: return XK_Page_Down;
+    case 0x23: return XK_End;
+    case 0x24: return XK_Home;
+    case 0x25: return XK_Left;
+    case 0x26: return XK_Up;
+    case 0x27: return XK_Right;
+    case 0x28: return XK_Down;
+    case 0x2C: return XK_Print;
+    case 0x2D: return XK_minus;
+    case 0x2E: return XK_period;
+    case 0x2F: return XK_slash;
+    case 0x30: return XK_0;
+    case 0x31: return XK_1;
+    case 0x32: return XK_2;
+    case 0x33: return XK_3;
+    case 0x34: return XK_4;
+    case 0x35: return XK_5;
+    case 0x36: return XK_6;
+    case 0x37: return XK_7;
+    case 0x38: return XK_8;
+    case 0x39: return XK_9;
+    case 0x3B: return XK_semicolon;
+    case 0x3D: return XK_equal;
+    case 0x41: return XK_a;
+    case 0x42: return XK_b;
+    case 0x43: return XK_c;
+    case 0x44: return XK_d;
+    case 0x45: return XK_e;
+    case 0x46: return XK_f;
+    case 0x47: return XK_g;
+    case 0x48: return XK_h;
+    case 0x49: return XK_i;
+    case 0x4A: return XK_j;
+    case 0x4B: return XK_k;
+    case 0x4C: return XK_l;
+    case 0x4D: return XK_m;
+    case 0x4E: return XK_n;
+    case 0x4F: return XK_o;
+    case 0x50: return XK_p;
+    case 0x51: return XK_q;
+    case 0x52: return XK_r;
+    case 0x53: return XK_s;
+    case 0x54: return XK_t;
+    case 0x55: return XK_u;
+    case 0x56: return XK_v;
+    case 0x57: return XK_w;
+    case 0x58: return XK_x;
+    case 0x59: return XK_y;
+    case 0x5A: return XK_z;
+    case 0x5B: return XK_bracketleft;
+    case 0x5C: return XK_backslash;
+    case 0x5D: return XK_bracketright;
+    case 0x60: return XK_KP_0;
+    case 0x61: return XK_KP_1;
+    case 0x62: return XK_KP_2;
+    case 0x63: return XK_KP_3;
+    case 0x64: return XK_KP_4;
+    case 0x65: return XK_KP_5;
+    case 0x66: return XK_KP_6;
+    case 0x67: return XK_KP_7;
+    case 0x68: return XK_KP_8;
+    case 0x69: return XK_KP_9;
+    case 0x6A: return XK_multiply;
+    case 0x6B: return XK_KP_Add;
+    case 0x6C: return XK_KP_Separator;
+    case 0x6D: return XK_KP_Subtract;
+    case 0x6E: return XK_KP_Decimal;
+    case 0x6F: return XK_KP_Divide;
+    case 0x7F: return XK_Delete;
+    case 0x70: return XK_F1;
+    case 0x71: return XK_F2;
+    case 0x72: return XK_F3;
+    case 0x73: return XK_F4;
+    case 0x74: return XK_F5;
+    case 0x75: return XK_F6;
+    case 0x76: return XK_F7;
+    case 0x77: return XK_F8;
+    case 0x78: return XK_F9;
+    case 0x79: return XK_F10;
+    case 0x7A: return XK_F11;
+    case 0x7B: return XK_F12;
+    case 0x90: return XK_Num_Lock;
+    case 0x91: return XK_Scroll_Lock;
+    case 0x9B: return XK_Insert;
+    case 0x9A: return XK_Print;
+    case 0xC0: return XK_quoteleft;
+    case 0xDE: return XK_quoteright;
+    case 0xE0: return XK_KP_Up;
+    case 0xE1: return XK_KP_Down;
+    case 0xE2: return XK_KP_Left;
+    case 0xE3: return XK_KP_Right;
+    case 0xFF7E: return XK_ISO_Level3_Shift;
+    case 0x20C: return XK_Super_L;
+    case 0x300: return XK_Super_L;
+    default: return XK_VoidSymbol;
+  }
+}
+
 #endif  // defined(OS_LINUX)
+
+#if defined(OS_MACOSX)
+
+const char kShiftCharsForNumberKeys[] = ")!@#$%^&*(";
+
+int JavaFXKeyCodeToMacKeyCode(int javafx_key_code) {
+  switch (javafx_key_code) {
+    case 0x08: return kVK_Delete;
+    case 0x09: return kVK_Tab;
+    case 0x0A: return kVK_Return;
+    case 0x1B: return kVK_Escape;
+    case 0x20: return kVK_Space;
+    case 0x21: return kVK_PageUp;
+    case 0x22: return kVK_PageDown;
+    case 0x23: return kVK_End;
+    case 0x24: return kVK_Home;
+    case 0x25: return kVK_LeftArrow;
+    case 0x26: return kVK_UpArrow;
+    case 0x27: return kVK_RightArrow;
+    case 0x28: return kVK_DownArrow;
+    case 0x7F: return kVK_ForwardDelete;
+    case 0x30: return kVK_ANSI_0;
+    case 0x31: return kVK_ANSI_1;
+    case 0x32: return kVK_ANSI_2;
+    case 0x33: return kVK_ANSI_3;
+    case 0x34: return kVK_ANSI_4;
+    case 0x35: return kVK_ANSI_5;
+    case 0x36: return kVK_ANSI_6;
+    case 0x37: return kVK_ANSI_7;
+    case 0x38: return kVK_ANSI_8;
+    case 0x39: return kVK_ANSI_9;
+    case 0x3B: return kVK_ANSI_Semicolon;
+    case 0x3D: return kVK_ANSI_Equal;
+    case 0x2C: return kVK_ANSI_Comma;
+    case 0x2D: return kVK_ANSI_Minus;
+    case 0x2E: return kVK_ANSI_Period;
+    case 0x2F: return kVK_ANSI_Slash;
+    case 0x41: return kVK_ANSI_A;
+    case 0x42: return kVK_ANSI_B;
+    case 0x43: return kVK_ANSI_C;
+    case 0x44: return kVK_ANSI_D;
+    case 0x45: return kVK_ANSI_E;
+    case 0x46: return kVK_ANSI_F;
+    case 0x47: return kVK_ANSI_G;
+    case 0x48: return kVK_ANSI_H;
+    case 0x49: return kVK_ANSI_I;
+    case 0x4A: return kVK_ANSI_J;
+    case 0x4B: return kVK_ANSI_K;
+    case 0x4C: return kVK_ANSI_L;
+    case 0x4D: return kVK_ANSI_M;
+    case 0x4E: return kVK_ANSI_N;
+    case 0x4F: return kVK_ANSI_O;
+    case 0x50: return kVK_ANSI_P;
+    case 0x51: return kVK_ANSI_Q;
+    case 0x52: return kVK_ANSI_R;
+    case 0x53: return kVK_ANSI_S;
+    case 0x54: return kVK_ANSI_T;
+    case 0x55: return kVK_ANSI_U;
+    case 0x56: return kVK_ANSI_V;
+    case 0x57: return kVK_ANSI_W;
+    case 0x58: return kVK_ANSI_X;
+    case 0x59: return kVK_ANSI_Y;
+    case 0x5A: return kVK_ANSI_Z;
+    case 0x5B: return kVK_ANSI_LeftBracket;
+    case 0x5C: return kVK_ANSI_Backslash;
+    case 0x5D: return kVK_ANSI_RightBracket;
+    case 0xC0: return kVK_ANSI_Grave;
+    case 0xDE: return kVK_ANSI_Quote;
+    case 0x70: return kVK_F1;
+    case 0x71: return kVK_F2;
+    case 0x72: return kVK_F3;
+    case 0x73: return kVK_F4;
+    case 0x74: return kVK_F5;
+    case 0x75: return kVK_F6;
+    case 0x76: return kVK_F7;
+    case 0x77: return kVK_F8;
+    case 0x78: return kVK_F9;
+    case 0x79: return kVK_F10;
+    case 0x7A: return kVK_F11;
+    case 0x7B: return kVK_F12;
+    case 0x10: return kVK_Shift;
+    case 0x11: return kVK_Control;
+    case 0x12: return kVK_Option;
+    case 0x9D: return kVK_Command;
+    case 0x300: return kVK_Command;
+    default: return -1;
+  }
+}
+
+char GetMacShiftCharacter(int mac_key_code) {
+  switch (mac_key_code) {
+    case kVK_ANSI_Grave: return '~';
+    case kVK_ANSI_1: return '!';
+    case kVK_ANSI_2: return '@';
+    case kVK_ANSI_3: return '#';
+    case kVK_ANSI_4: return '$';
+    case kVK_ANSI_5: return '%';
+    case kVK_ANSI_6: return '^';
+    case kVK_ANSI_7: return '&';
+    case kVK_ANSI_8: return '*';
+    case kVK_ANSI_9: return '(';
+    case kVK_ANSI_0: return ')';
+    case kVK_ANSI_Minus: return '_';
+    case kVK_ANSI_Equal: return '+';
+    case kVK_ANSI_LeftBracket: return '{';
+    case kVK_ANSI_RightBracket: return '}';
+    case kVK_ANSI_Backslash: return '|';
+    case kVK_ANSI_Semicolon: return ':';
+    case kVK_ANSI_Quote: return '"';
+    case kVK_ANSI_Comma: return '<';
+    case kVK_ANSI_Period: return '>';
+    case kVK_ANSI_Slash: return '?';
+    default: return 0;
+  }
+}
+
+char GetMacControlCharacter(int mac_key_code) {
+  switch (mac_key_code) {
+    case kVK_ANSI_LeftBracket: return 27;
+    case kVK_ANSI_Backslash: return 28;
+    case kVK_ANSI_RightBracket: return 29;
+    default: return 0;
+  }
+}
+
+#endif  // defined(OS_MACOSX)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int GetCefModifiers(JNIEnv* env, jclass cls, int modifiers) {
+  JNI_STATIC_DEFINE_INT_RV(env, cls, ALT_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON1_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON2_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, BUTTON3_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, CTRL_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, META_DOWN_MASK, 0);
+  JNI_STATIC_DEFINE_INT_RV(env, cls, SHIFT_DOWN_MASK, 0);
+  int cef_modifiers = 0;
+  if (modifiers & JNI_STATIC(ALT_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_ALT_DOWN;
+  if (modifiers & JNI_STATIC(BUTTON1_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+  if (modifiers & JNI_STATIC(BUTTON2_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+  if (modifiers & JNI_STATIC(BUTTON3_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+  if (modifiers & JNI_STATIC(CTRL_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
+  if (modifiers & JNI_STATIC(META_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
+  if (modifiers & JNI_STATIC(SHIFT_DOWN_MASK))
+    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
+  return cef_modifiers;
+}
+
+int GetCefModifiersFromJavaFXMouse(JNIEnv* env, jobject event) {
+  int cef_modifiers = 0;
+
+  jclass eventClass = env->GetObjectClass(event);
+  if (!eventClass)
+    return 0;
+
+  jmethodID isPrimaryDownMethod = env->GetMethodID(eventClass, "isPrimaryButtonDown", "()Z");
+  jmethodID isSecondaryDownMethod = env->GetMethodID(eventClass, "isSecondaryButtonDown", "()Z");
+  jmethodID isMiddleDownMethod = env->GetMethodID(eventClass, "isMiddleButtonDown", "()Z");
+
+  jmethodID isCtrlDownMethod = env->GetMethodID(eventClass, "isControlDown", "()Z");
+  jmethodID isShiftDownMethod = env->GetMethodID(eventClass, "isShiftDown", "()Z");
+  jmethodID isAltDownMethod = env->GetMethodID(eventClass, "isAltDown", "()Z");
+  jmethodID isMetaDownMethod = env->GetMethodID(eventClass, "isMetaDown", "()Z");
+
+  if (isPrimaryDownMethod && env->CallBooleanMethod(event, isPrimaryDownMethod))
+    cef_modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+  if (isSecondaryDownMethod && env->CallBooleanMethod(event, isSecondaryDownMethod))
+    cef_modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+  if (isMiddleDownMethod && env->CallBooleanMethod(event, isMiddleDownMethod))
+    cef_modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+
+  if (isCtrlDownMethod && env->CallBooleanMethod(event, isCtrlDownMethod))
+    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
+  if (isShiftDownMethod && env->CallBooleanMethod(event, isShiftDownMethod))
+    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
+  if (isAltDownMethod && env->CallBooleanMethod(event, isAltDownMethod))
+    cef_modifiers |= EVENTFLAG_ALT_DOWN;
+  if (isMetaDownMethod && env->CallBooleanMethod(event, isMetaDownMethod))
+    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
+
+  return cef_modifiers;
+}
 
 struct JNIObjectsForCreate {
  public:
@@ -1080,84 +1777,407 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1Invalidate(JNIEnv* env, 
   browser->GetHost()->Invalidate(PET_VIEW);
 }
 
+// ============================================================================
+// SendKeyEvent - Handle JavaFX KeyEvent and send it to CEF browser
+// ============================================================================
+
 JNIEXPORT void JNICALL
 Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
     JNIEnv* env,
     jobject obj,
-    jobject key_event)
-{
-    CefRefPtr<CefBrowser> browser = JNI_GET_BROWSER_OR_RETURN(env, obj);
-    jclass keyEventClass = env->GetObjectClass(key_event);
-    if (!keyEventClass) return;
+    jobject key_event) {
 
-    // --- Resolve CEF event type from JavaFX event type name ---
-    jmethodID getEventTypeMethod =
-        env->GetMethodID(keyEventClass, "getEventType", "()Ljavafx/event/EventType;");
-    if (!getEventTypeMethod) return;
+  fprintf(stderr, "[DEBUG] === SendKeyEvent called ===\n");
+  fflush(stderr);
 
-    jobject eventType = env->CallObjectMethod(key_event, getEventTypeMethod);
-    if (!eventType) return;
+  // Get the CEF browser instance
+  CefRefPtr<CefBrowser> browser = JNI_GET_BROWSER_OR_RETURN(env, obj);
+  if (!browser) {
+    fprintf(stderr, "[ERROR] Failed to get browser\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got browser successfully\n");
+  fflush(stderr);
 
-    jclass eventTypeClass = env->GetObjectClass(eventType);
-    jmethodID getNameMethod =
-        env->GetMethodID(eventTypeClass, "getName", "()Ljava/lang/String;");
-    jstring eventTypeName = (jstring)env->CallObjectMethod(eventType, getNameMethod);
-    const char* typeStr = env->GetStringUTFChars(eventTypeName, nullptr);
+  // Get the KeyEvent class
+  ScopedJNIClass cls(env, env->GetObjectClass(key_event));
+  if (!cls) {
+    fprintf(stderr, "[ERROR] Failed to get KeyEvent class\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got KeyEvent class\n");
+  fflush(stderr);
 
-    cef_key_event_type_t event_type;
-    if (strcmp(typeStr, "KEY_PRESSED") == 0) {
-        event_type = KEYEVENT_RAWKEYDOWN;
-    } else if (strcmp(typeStr, "KEY_RELEASED") == 0) {
-        event_type = KEYEVENT_KEYUP;
-    } else if (strcmp(typeStr, "KEY_TYPED") == 0) {
-        event_type = KEYEVENT_CHAR;
+  // Get method IDs for JavaFX KeyEvent
+  jmethodID getEventType_mid = env->GetMethodID(cls, "getEventType", "()Ljavafx/event/EventType;");
+
+  if (!getEventType_mid) {
+    fprintf(stderr, "[ERROR] Failed to get getEventType method\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got getEventType method\n");
+  fflush(stderr);
+
+  jmethodID getCode_mid =
+      env->GetMethodID(cls, "getCode", "()Ljavafx/scene/input/KeyCode;");
+  if (!getCode_mid) {
+    fprintf(stderr, "[ERROR] Failed to get getCode method\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got getCode method\n");
+  fflush(stderr);
+
+  jmethodID getCharacter_mid =
+      env->GetMethodID(cls, "getCharacter", "()Ljava/lang/String;");
+  if (!getCharacter_mid) {
+    fprintf(stderr, "[ERROR] Failed to get getCharacter method\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got getCharacter method\n");
+  fflush(stderr);
+
+  jmethodID isControlDown_mid = env->GetMethodID(cls, "isControlDown", "()Z");
+  if (!isControlDown_mid) {
+    fprintf(stderr, "[ERROR] Failed to get isControlDown method\n");
+    fflush(stderr);
+    return;
+  }
+
+  jmethodID isShiftDown_mid = env->GetMethodID(cls, "isShiftDown", "()Z");
+  if (!isShiftDown_mid) {
+    fprintf(stderr, "[ERROR] Failed to get isShiftDown method\n");
+    fflush(stderr);
+    return;
+  }
+
+  jmethodID isAltDown_mid = env->GetMethodID(cls, "isAltDown", "()Z");
+  if (!isAltDown_mid) {
+    fprintf(stderr, "[ERROR] Failed to get isAltDown method\n");
+    fflush(stderr);
+    return;
+  }
+
+  jmethodID isMetaDown_mid = env->GetMethodID(cls, "isMetaDown", "()Z");
+  if (!isMetaDown_mid) {
+    fprintf(stderr, "[ERROR] Failed to get isMetaDown method\n");
+    fflush(stderr);
+    return;
+  }
+
+  fprintf(stderr, "[DEBUG] Got all method IDs successfully\n");
+  fflush(stderr);
+
+  // Get the event type object
+  jobject event_type_obj = env->CallObjectMethod(key_event, getEventType_mid);
+  if (!event_type_obj) {
+    fprintf(stderr, "[ERROR] Failed to call getEventType()\n");
+    fflush(stderr);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got event type object\n");
+  fflush(stderr);
+
+  // Get static EventType fields from KeyEvent class
+  jclass key_event_class = env->FindClass("javafx/scene/input/KeyEvent");
+  if (!key_event_class) {
+    fprintf(stderr, "[ERROR] Failed to find KeyEvent class\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Found KeyEvent class for static fields\n");
+  fflush(stderr);
+
+  // Get static field IDs for KEY_PRESSED, KEY_RELEASED, KEY_TYPED
+  jfieldID key_pressed_fid =
+    env->GetStaticFieldID(key_event_class, "KEY_PRESSED",
+                          "Ljavafx/event/EventType;");
+  jfieldID key_released_fid =
+      env->GetStaticFieldID(key_event_class, "KEY_RELEASED",
+                              "Ljavafx/event/EventType;");
+    jfieldID key_typed_fid =
+        env->GetStaticFieldID(key_event_class, "KEY_TYPED",
+                              "Ljavafx/event/EventType;");
+
+  if (!key_pressed_fid || !key_released_fid || !key_typed_fid) {
+    fprintf(stderr, "[ERROR] Failed to get EventType static fields\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    env->DeleteLocalRef(key_event_class);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got all EventType static fields\n");
+  fflush(stderr);
+
+  // Get the actual static objects
+  jobject key_pressed_obj =
+      env->GetStaticObjectField(key_event_class, key_pressed_fid);
+  jobject key_released_obj =
+      env->GetStaticObjectField(key_event_class, key_released_fid);
+  jobject key_typed_obj = env->GetStaticObjectField(key_event_class, key_typed_fid);
+
+  // Determine the CEF event type based on the JavaFX event type
+  cef_key_event_type_t cef_event_type = KEYEVENT_RAWKEYDOWN;
+
+  if (env->IsSameObject(event_type_obj, key_pressed_obj)) {
+    cef_event_type = KEYEVENT_RAWKEYDOWN;
+    fprintf(stderr, "[DEBUG] Event type: KEY_PRESSED\n");
+    fflush(stderr);
+  } else if (env->IsSameObject(event_type_obj, key_released_obj)) {
+    cef_event_type = KEYEVENT_KEYUP;
+    fprintf(stderr, "[DEBUG] Event type: KEY_RELEASED\n");
+    fflush(stderr);
+  } else if (env->IsSameObject(event_type_obj, key_typed_obj)) {
+    cef_event_type = KEYEVENT_CHAR;
+    fprintf(stderr, "[DEBUG] Event type: KEY_TYPED\n");
+    fflush(stderr);
+  } else {
+    fprintf(stderr, "[ERROR] Unknown event type\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    env->DeleteLocalRef(key_pressed_obj);
+    env->DeleteLocalRef(key_released_obj);
+    env->DeleteLocalRef(key_typed_obj);
+    env->DeleteLocalRef(key_event_class);
+    return;
+  }
+
+  // Get KeyCode enum object
+  jobject key_code_obj = env->CallObjectMethod(key_event, getCode_mid);
+  if (!key_code_obj) {
+    fprintf(stderr, "[ERROR] Failed to call getCode()\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    env->DeleteLocalRef(key_pressed_obj);
+    env->DeleteLocalRef(key_released_obj);
+    env->DeleteLocalRef(key_typed_obj);
+    env->DeleteLocalRef(key_event_class);
+    return;
+  }
+  fprintf(stderr, "[DEBUG] Got KeyCode object\n");
+  fflush(stderr);
+
+  // Get the KeyCode class
+  ScopedJNIClass key_code_cls(env, env->GetObjectClass(key_code_obj));
+  if (!key_code_cls) {
+    fprintf(stderr, "[ERROR] Failed to get KeyCode class\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    env->DeleteLocalRef(key_pressed_obj);
+    env->DeleteLocalRef(key_released_obj);
+    env->DeleteLocalRef(key_typed_obj);
+    env->DeleteLocalRef(key_event_class);
+    env->DeleteLocalRef(key_code_obj);
+    return;
+  }
+
+  // Get the code value from KeyCode enum (getCode() method)
+  jmethodID key_code_get_code_mid =
+      env->GetMethodID(key_code_cls, "getCode", "()I");
+  if (!key_code_get_code_mid) {
+    fprintf(stderr, "[ERROR] Failed to get getCode() method on KeyCode\n");
+    fflush(stderr);
+    env->DeleteLocalRef(event_type_obj);
+    env->DeleteLocalRef(key_pressed_obj);
+    env->DeleteLocalRef(key_released_obj);
+    env->DeleteLocalRef(key_typed_obj);
+    env->DeleteLocalRef(key_event_class);
+    env->DeleteLocalRef(key_code_obj);
+    return;
+  }
+
+  // Call getCode() to get the JavaFX KeyCode value
+  int javafx_key_code =
+      env->CallIntMethod(key_code_obj, key_code_get_code_mid);
+  fprintf(stderr, "[DEBUG] JavaFX KeyCode: 0x%04X (%d)\n", javafx_key_code,
+          javafx_key_code);
+  fflush(stderr);
+
+  // Get the character string from the key event
+  jstring character_str =
+      (jstring)env->CallObjectMethod(key_event, getCharacter_mid);
+
+  char16_t key_char = 0;
+  if (character_str) {
+    const jchar* chars = env->GetStringChars(character_str, nullptr);
+    if (chars && env->GetStringLength(character_str) > 0) {
+      key_char = chars[0];
+      fprintf(stderr, "[DEBUG] Key character: '%c' (0x%04X)\n", (char)key_char,
+              key_char);
+      fflush(stderr);
+      env->ReleaseStringChars(character_str, chars);
+    }
+    env->DeleteLocalRef(character_str);
+  }
+
+  // Get modifier key states
+  jboolean is_ctrl_down = env->CallBooleanMethod(key_event, isControlDown_mid);
+  jboolean is_shift_down = env->CallBooleanMethod(key_event, isShiftDown_mid);
+  jboolean is_alt_down = env->CallBooleanMethod(key_event, isAltDown_mid);
+  jboolean is_meta_down = env->CallBooleanMethod(key_event, isMetaDown_mid);
+
+  fprintf(stderr,
+          "[DEBUG] Modifiers: Ctrl=%d, Shift=%d, Alt=%d, Meta=%d\n",
+          is_ctrl_down, is_shift_down, is_alt_down, is_meta_down);
+  fflush(stderr);
+
+  // Build CEF modifiers from JavaFX modifiers
+  int cef_modifiers = 0;
+  if (is_ctrl_down)
+    cef_modifiers |= EVENTFLAG_CONTROL_DOWN;
+  if (is_shift_down)
+    cef_modifiers |= EVENTFLAG_SHIFT_DOWN;
+  if (is_alt_down)
+    cef_modifiers |= EVENTFLAG_ALT_DOWN;
+  if (is_meta_down)
+    cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
+
+  fprintf(stderr, "[DEBUG] CEF modifiers: 0x%08X\n", cef_modifiers);
+  fflush(stderr);
+
+  // Create CEF key event
+  CefKeyEvent cef_event;
+  cef_event.type = cef_event_type;
+  cef_event.modifiers = cef_modifiers;
+
+#if defined(OS_WIN)
+  fprintf(stderr, "[DEBUG] Platform: Windows\n");
+  fflush(stderr);
+
+  // Map JavaFX KeyCode to Windows virtual key code
+  cef_event.windows_key_code =
+      JavaFXKeyCodeToWindowsKeyCode(javafx_key_code);
+  fprintf(stderr, "[DEBUG] Windows key code: 0x%04X\n",
+          cef_event.windows_key_code);
+  fflush(stderr);
+
+  // For KEY_PRESSED and KEY_RELEASED, include scan code
+  if (cef_event_type == KEYEVENT_RAWKEYDOWN ||
+      cef_event_type == KEYEVENT_KEYUP) {
+    int scan_code =
+        MapVirtualKey(cef_event.windows_key_code, MAPVK_VK_TO_VSC);
+    cef_event.native_key_code = (scan_code << 16) | 1;
+
+    // For KEY_RELEASED, set bits 30 and 31
+    if (cef_event_type == KEYEVENT_KEYUP) {
+      cef_event.native_key_code |= 0xC0000000;
+    }
+    fprintf(stderr, "[DEBUG] Native key code: 0x%08X\n",
+            cef_event.native_key_code);
+    fflush(stderr);
+  } else if (cef_event_type == KEYEVENT_CHAR) {
+    cef_event.windows_key_code = key_char;
+  }
+
+#elif defined(OS_LINUX)
+  fprintf(stderr, "[DEBUG] Platform: Linux\n");
+  fflush(stderr);
+
+  // Map JavaFX KeyCode to X11 keysym
+  unsigned int x11_keysym = JavaFXKeyCodeToXKeysym(javafx_key_code);
+  cef_event.native_key_code = x11_keysym;
+  fprintf(stderr, "[DEBUG] X11 keysym: 0x%08X\n", x11_keysym);
+  fflush(stderr);
+
+  // Convert X11 keysym to Windows key code for CEF
+  KeyboardCode windows_key_code =
+      KeyboardCodeFromXKeysym(cef_event.native_key_code);
+  cef_event.windows_key_code =
+      GetWindowsKeyCodeWithoutLocation(windows_key_code);
+
+  fprintf(stderr, "[DEBUG] Windows key code: 0x%04X\n",
+          cef_event.windows_key_code);
+  fflush(stderr);
+
+  // Set system key flag for Alt
+  if (cef_event.modifiers & EVENTFLAG_ALT_DOWN)
+    cef_event.is_system_key = true;
+
+  // Set character fields
+  if (windows_key_code == VKEY_RETURN) {
+    cef_event.unmodified_character = '\r';
+  } else {
+    cef_event.unmodified_character =
+        key_char ? key_char : cef_event.native_key_code;
+  }
+
+  // Handle control characters
+  if (cef_event.modifiers & EVENTFLAG_CONTROL_DOWN) {
+    cef_event.character = GetControlCharacter(
+        windows_key_code, cef_event.modifiers & EVENTFLAG_SHIFT_DOWN);
+  } else {
+    cef_event.character = cef_event.unmodified_character;
+  }
+
+  fprintf(stderr,
+          "[DEBUG] Character: 0x%02X, Unmodified: 0x%02X, Is system key: %d\n",
+          cef_event.character, cef_event.unmodified_character,
+          cef_event.is_system_key);
+  fflush(stderr);
+
+#elif defined(OS_MACOSX)
+  fprintf(stderr, "[DEBUG] Platform: macOS\n");
+  fflush(stderr);
+
+  // Map JavaFX KeyCode to Mac key code
+  cef_event.native_key_code = JavaFXKeyCodeToMacKeyCode(javafx_key_code);
+  fprintf(stderr, "[DEBUG] macOS key code: 0x%04X\n",
+          cef_event.native_key_code);
+  fflush(stderr);
+
+  cef_event.unmodified_character = key_char;
+  cef_event.character = key_char;
+
+  // Handle shift key character transformations
+  if (cef_event.modifiers & EVENTFLAG_SHIFT_DOWN) {
+    if (key_char >= '0' && key_char <= '9') {
+      cef_event.character = kShiftCharsForNumberKeys[key_char - '0'];
+    } else if (key_char >= 'a' && key_char <= 'z') {
+      cef_event.character = 'A' + (key_char - 'a');
     } else {
-        env->ReleaseStringUTFChars(eventTypeName, typeStr);
-        return;
+      cef_event.character = GetMacShiftCharacter(cef_event.native_key_code);
     }
-    env->ReleaseStringUTFChars(eventTypeName, typeStr);
+  }
 
-    // --- Read Windows Virtual Key code directly from JavaFX KeyCode ---
-    // JavaFX KeyCode.getCode() returns the Windows VK code, which maps 1:1 to CEF VKEY_* constants.
-    jmethodID getCodeMethod =
-        env->GetMethodID(keyEventClass, "getCode", "()Ljavafx/scene/input/KeyCode;");
-    jobject keyCodeObj = env->CallObjectMethod(key_event, getCodeMethod);
-    if (!keyCodeObj) return;
+  // Handle control characters
+  if (cef_event.modifiers & EVENTFLAG_CONTROL_DOWN) {
+    if (key_char >= 'A' && key_char <= 'Z')
+      cef_event.character = 1 + key_char - 'A';
+    else if (key_char >= 'a' && key_char <= 'z')
+      cef_event.character = 1 + key_char - 'a';
+    else
+      cef_event.character = GetMacControlCharacter(cef_event.native_key_code);
+  }
+#endif
 
-    jclass keyCodeClass = env->GetObjectClass(keyCodeObj);
-    jmethodID getCodeIntMethod =
-        env->GetMethodID(keyCodeClass, "getCode", "()I");
-    jint windowsVkCode = env->CallIntMethod(keyCodeObj, getCodeIntMethod);
+  // Log the final event details
+  fprintf(stderr, "[DEBUG] Sending key event to browser...\n");
+  fflush(stderr);
+  fprintf(stderr,
+          "[DEBUG] Final event: type=%d, keyCode=%d, nativeCode=0x%X, "
+          "char=0x%02X, modifiers=0x%X\n",
+          cef_event.type, cef_event.windows_key_code,
+          cef_event.native_key_code, cef_event.character, cef_event.modifiers);
+  fflush(stderr);
 
-    // --- Read character from JavaFX KeyEvent ---
-    jmethodID getCharMethod =
-        env->GetMethodID(keyEventClass, "getCharacter", "()Ljava/lang/String;");
-    jstring charStr = (jstring)env->CallObjectMethod(key_event, getCharMethod);
-    CefString cefChar = GetJNIString(env, charStr);
-    char16_t character = cefChar.length() > 0 ? cefChar.c_str()[0] : 0;
+  // Send the key event to the browser
+  browser->GetHost()->SendKeyEvent(cef_event);
 
-    // JavaFX uses 0xFFFF (CHAR_UNDEFINED) for non-printable keys (arrows, F-keys, etc.).
-    // Drop KEY_TYPED events for such keys — CEF does not expect KEYEVENT_CHAR without a real character.
-    if (event_type == KEYEVENT_CHAR && (character == 0xFFFF || character == 0)) {
-        return;
-    }
+  fprintf(stderr, "[DEBUG] Key event sent successfully\n");
+  fflush(stderr);
 
-    // Normalize CHAR_UNDEFINED to 0 for RAWKEYDOWN/KEYUP — CEF expects 0 for non-printable keys.
-    if (event_type != KEYEVENT_CHAR && character == 0xFFFF) {
-        character = 0;
-    }
-
-    // --- Build and send CefKeyEvent ---
-    CefKeyEvent cef_event;
-    cef_event.type                 = event_type;
-    cef_event.modifiers            = GetCefModifiersFromJavaFX(env, key_event);
-    cef_event.windows_key_code     = windowsVkCode;
-    cef_event.native_key_code      = 0;
-    cef_event.is_system_key        = false;
-    cef_event.character            = character;
-    cef_event.unmodified_character = character;
-
-    browser->GetHost()->SendKeyEvent(cef_event);
+  // Clean up all local JNI references
+  env->DeleteLocalRef(event_type_obj);
+  env->DeleteLocalRef(key_pressed_obj);
+  env->DeleteLocalRef(key_released_obj);
+  env->DeleteLocalRef(key_typed_obj);
+  env->DeleteLocalRef(key_event_class);
+  env->DeleteLocalRef(key_code_obj);
 }
 
 JNIEXPORT void JNICALL
