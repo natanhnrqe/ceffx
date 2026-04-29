@@ -4,6 +4,9 @@ Techsenger CEFFX is a library for integrating the Chromium Embedded Framework in
 of [JCEF](https://github.com/chromiumembedded/java-cef) (commit d3de827), migrated from Swing to JavaFX. Designed
 specifically for JavaFX, CEFFX provides an optimized and efficient solution for working with Chromium on the platform.
 
+CEFFX provides prebuilt native libraries, making it easy to integrate CEF into any JavaFX application without the need
+to compile native code from source.
+
 ## Table of Contents
 * [Demo](#demo)
 * [Features](#features)
@@ -15,6 +18,7 @@ specifically for JavaFX, CEFFX provides an optimized and efficient solution for 
 * [Usage](#usage)
     * [Settings](#usage-settings)
     * [Threads](#usage-threads)
+    * [Prebuilt Natives](#usage-prebuit-natives)
 * [Code building](#code-building)
 * [Running Demo](#running-demo)
 * [License](#license)
@@ -89,14 +93,37 @@ the application.
 
 ## Dependencies <a name="dependencies"></a>
 
-This project will soon be available on Maven Central.:
+This project will soon be available on Maven Central:
 
 ```
+<dependency>
+    <groupId>com.techsenger.ceffx</groupId>
+    <artifactId>ceffx-natives</artifactId>
+    <version>${ceffx.version}</version>
+    <classifier>${ceffx.classifier}</classifier>
+</dependency>
 <dependency>
     <groupId>com.techsenger.ceffx</groupId>
     <artifactId>ceffx-core</artifactId>
     <version>${ceffx.version}</version>
 </dependency>
+```
+The `ceffx.classifier` uses the same values as the OpenJFX classifiers:
+
+* linux (built using the `ubuntu-22.04` GitHub runner)
+* win (built using the `windows-2022` GitHub runner)
+* mac (built using the `macos-15-intel` GitHub runner)
+* mac-aarch64 (built using the `macos-14-arm64` GitHub runner)
+
+Note that Maven can determine the `classifier` using a `profile`. See an example in the demo [pom.xml](java/ceffx-demo/pom.xml).
+
+To use snapshot versions, add our repository:
+
+```
+<repository>
+    <id>repsy-snapshots</id>
+    <url>https://repo.repsy.io/mvn/techsenger/snapshots</url>
+</repository>
 ```
 
 ## Usage <a name="usage"></a>
@@ -148,6 +175,40 @@ Performing CEF operations outside the CEF thread may lead to inconsistent behavi
 or intermittently), while others may fail. In addition, this can result in CEF-related exceptions being thrown.
 
 As a rule of thumb, if something does not work as expected, it is recommended to first check which thread is being used.
+
+### Prebuilt Natives <a name="usage-prebuit-natives"></a>
+
+CEFFX provides prebuilt native libraries, making it easy to integrate CEF into any JavaFX application without the need
+to compile it from source. This section describes all the steps required to set it up.
+
+1. Download the minimal CEF distribution from [CEF](https://cef-builds.spotifycdn.com/index.html) version
+`146.0.10+g8219561+chromium-146.0.7680.179`. Use the Version Filter to locate the correct version. Please note that
+other versions will not work, as CEFFX includes a built-in version check.
+2. Create a directory on your system, for example: `/foo/cef`.
+3. Copy the `contents` of the `Release` folder from the archive into `/foo/cef`.
+4. Copy the `contents` of the `Resources` folder from the archive into `/foo/cef`.
+
+After that, the `/foo/cef` directory should contain the following files (Linux):
+
+```
+chrome_100_percent.pak
+chrome_200_percent.pak
+chrome-sandbox
+icudtl.dat
+libcef.so
+libEGL.so
+libGLESv2.so
+libvk_swiftshader.so
+libvulkan.so.1
+locales
+resources.pak
+v8_context_snapshot.bin
+vk_swiftshader_icd.json
+```
+5. Add the dependencies to your JavaFX project as described in the [Dependencies](#dependencies) section.
+6. On the first run, you need to extract the native binaries from the `ceffx-natives` module into `/foo/cef`.
+   Use `NativeExtractor` provided by the `ceffx-natives` module.
+7. Set the system property: `-Djava.library.path=/foo/cef`
 
 ## Code Building <a name="code-building"></a>
 
