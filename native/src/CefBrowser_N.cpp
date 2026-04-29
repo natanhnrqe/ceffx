@@ -1787,138 +1787,50 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
     jobject obj,
     jobject key_event) {
 
-  fprintf(stderr, "[DEBUG] === SendKeyEvent called ===\n");
-  fflush(stderr);
-
   // Get the CEF browser instance
   CefRefPtr<CefBrowser> browser = JNI_GET_BROWSER_OR_RETURN(env, obj);
   if (!browser) {
-    fprintf(stderr, "[ERROR] Failed to get browser\n");
-    fflush(stderr);
     return;
   }
-  fprintf(stderr, "[DEBUG] Got browser successfully\n");
-  fflush(stderr);
 
   // Get the KeyEvent class
   ScopedJNIClass cls(env, env->GetObjectClass(key_event));
   if (!cls) {
-    fprintf(stderr, "[ERROR] Failed to get KeyEvent class\n");
-    fflush(stderr);
     return;
   }
-  fprintf(stderr, "[DEBUG] Got KeyEvent class\n");
-  fflush(stderr);
 
   // Get method IDs for JavaFX KeyEvent
   jmethodID getEventType_mid = env->GetMethodID(cls, "getEventType", "()Ljavafx/event/EventType;");
-
-  if (!getEventType_mid) {
-    fprintf(stderr, "[ERROR] Failed to get getEventType method\n");
-    fflush(stderr);
-    return;
-  }
-  fprintf(stderr, "[DEBUG] Got getEventType method\n");
-  fflush(stderr);
-
-  jmethodID getCode_mid =
-      env->GetMethodID(cls, "getCode", "()Ljavafx/scene/input/KeyCode;");
-  if (!getCode_mid) {
-    fprintf(stderr, "[ERROR] Failed to get getCode method\n");
-    fflush(stderr);
-    return;
-  }
-  fprintf(stderr, "[DEBUG] Got getCode method\n");
-  fflush(stderr);
-
-  jmethodID getCharacter_mid =
-      env->GetMethodID(cls, "getCharacter", "()Ljava/lang/String;");
-  if (!getCharacter_mid) {
-    fprintf(stderr, "[ERROR] Failed to get getCharacter method\n");
-    fflush(stderr);
-    return;
-  }
-  fprintf(stderr, "[DEBUG] Got getCharacter method\n");
-  fflush(stderr);
-
+  jmethodID getCode_mid = env->GetMethodID(cls, "getCode", "()Ljavafx/scene/input/KeyCode;");
+  jmethodID getCharacter_mid = env->GetMethodID(cls, "getCharacter", "()Ljava/lang/String;");
   jmethodID isControlDown_mid = env->GetMethodID(cls, "isControlDown", "()Z");
-  if (!isControlDown_mid) {
-    fprintf(stderr, "[ERROR] Failed to get isControlDown method\n");
-    fflush(stderr);
-    return;
-  }
-
   jmethodID isShiftDown_mid = env->GetMethodID(cls, "isShiftDown", "()Z");
-  if (!isShiftDown_mid) {
-    fprintf(stderr, "[ERROR] Failed to get isShiftDown method\n");
-    fflush(stderr);
-    return;
-  }
-
   jmethodID isAltDown_mid = env->GetMethodID(cls, "isAltDown", "()Z");
-  if (!isAltDown_mid) {
-    fprintf(stderr, "[ERROR] Failed to get isAltDown method\n");
-    fflush(stderr);
-    return;
-  }
-
   jmethodID isMetaDown_mid = env->GetMethodID(cls, "isMetaDown", "()Z");
-  if (!isMetaDown_mid) {
-    fprintf(stderr, "[ERROR] Failed to get isMetaDown method\n");
-    fflush(stderr);
-    return;
-  }
-
-  fprintf(stderr, "[DEBUG] Got all method IDs successfully\n");
-  fflush(stderr);
 
   // Get the event type object
   jobject event_type_obj = env->CallObjectMethod(key_event, getEventType_mid);
-  if (!event_type_obj) {
-    fprintf(stderr, "[ERROR] Failed to call getEventType()\n");
-    fflush(stderr);
-    return;
-  }
-  fprintf(stderr, "[DEBUG] Got event type object\n");
-  fflush(stderr);
-
   // Get static EventType fields from KeyEvent class
   jclass key_event_class = env->FindClass("javafx/scene/input/KeyEvent");
   if (!key_event_class) {
-    fprintf(stderr, "[ERROR] Failed to find KeyEvent class\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     return;
   }
-  fprintf(stderr, "[DEBUG] Found KeyEvent class for static fields\n");
-  fflush(stderr);
 
   // Get static field IDs for KEY_PRESSED, KEY_RELEASED, KEY_TYPED
-  jfieldID key_pressed_fid =
-    env->GetStaticFieldID(key_event_class, "KEY_PRESSED",
-                          "Ljavafx/event/EventType;");
-  jfieldID key_released_fid =
-      env->GetStaticFieldID(key_event_class, "KEY_RELEASED",
-                              "Ljavafx/event/EventType;");
-    jfieldID key_typed_fid =
-        env->GetStaticFieldID(key_event_class, "KEY_TYPED",
-                              "Ljavafx/event/EventType;");
+  jfieldID key_pressed_fid = env->GetStaticFieldID(key_event_class, "KEY_PRESSED", "Ljavafx/event/EventType;");
+  jfieldID key_released_fid = env->GetStaticFieldID(key_event_class, "KEY_RELEASED", "Ljavafx/event/EventType;");
+  jfieldID key_typed_fid = env->GetStaticFieldID(key_event_class, "KEY_TYPED", "Ljavafx/event/EventType;");
 
   if (!key_pressed_fid || !key_released_fid || !key_typed_fid) {
-    fprintf(stderr, "[ERROR] Failed to get EventType static fields\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     env->DeleteLocalRef(key_event_class);
     return;
   }
-  fprintf(stderr, "[DEBUG] Got all EventType static fields\n");
-  fflush(stderr);
 
   // Get the actual static objects
-  jobject key_pressed_obj =
-      env->GetStaticObjectField(key_event_class, key_pressed_fid);
-  jobject key_released_obj =
-      env->GetStaticObjectField(key_event_class, key_released_fid);
+  jobject key_pressed_obj = env->GetStaticObjectField(key_event_class, key_pressed_fid);
+  jobject key_released_obj = env->GetStaticObjectField(key_event_class, key_released_fid);
   jobject key_typed_obj = env->GetStaticObjectField(key_event_class, key_typed_fid);
 
   // Determine the CEF event type based on the JavaFX event type
@@ -1926,19 +1838,11 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
 
   if (env->IsSameObject(event_type_obj, key_pressed_obj)) {
     cef_event_type = KEYEVENT_RAWKEYDOWN;
-    fprintf(stderr, "[DEBUG] Event type: KEY_PRESSED\n");
-    fflush(stderr);
   } else if (env->IsSameObject(event_type_obj, key_released_obj)) {
     cef_event_type = KEYEVENT_KEYUP;
-    fprintf(stderr, "[DEBUG] Event type: KEY_RELEASED\n");
-    fflush(stderr);
   } else if (env->IsSameObject(event_type_obj, key_typed_obj)) {
     cef_event_type = KEYEVENT_CHAR;
-    fprintf(stderr, "[DEBUG] Event type: KEY_TYPED\n");
-    fflush(stderr);
   } else {
-    fprintf(stderr, "[ERROR] Unknown event type\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     env->DeleteLocalRef(key_pressed_obj);
     env->DeleteLocalRef(key_released_obj);
@@ -1950,8 +1854,6 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
   // Get KeyCode enum object
   jobject key_code_obj = env->CallObjectMethod(key_event, getCode_mid);
   if (!key_code_obj) {
-    fprintf(stderr, "[ERROR] Failed to call getCode()\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     env->DeleteLocalRef(key_pressed_obj);
     env->DeleteLocalRef(key_released_obj);
@@ -1959,14 +1861,10 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
     env->DeleteLocalRef(key_event_class);
     return;
   }
-  fprintf(stderr, "[DEBUG] Got KeyCode object\n");
-  fflush(stderr);
 
   // Get the KeyCode class
   ScopedJNIClass key_code_cls(env, env->GetObjectClass(key_code_obj));
   if (!key_code_cls) {
-    fprintf(stderr, "[ERROR] Failed to get KeyCode class\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     env->DeleteLocalRef(key_pressed_obj);
     env->DeleteLocalRef(key_released_obj);
@@ -1980,8 +1878,6 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
   jmethodID key_code_get_code_mid =
       env->GetMethodID(key_code_cls, "getCode", "()I");
   if (!key_code_get_code_mid) {
-    fprintf(stderr, "[ERROR] Failed to get getCode() method on KeyCode\n");
-    fflush(stderr);
     env->DeleteLocalRef(event_type_obj);
     env->DeleteLocalRef(key_pressed_obj);
     env->DeleteLocalRef(key_released_obj);
@@ -1992,11 +1888,7 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
   }
 
   // Call getCode() to get the JavaFX KeyCode value
-  int javafx_key_code =
-      env->CallIntMethod(key_code_obj, key_code_get_code_mid);
-  fprintf(stderr, "[DEBUG] JavaFX KeyCode: 0x%04X (%d)\n", javafx_key_code,
-          javafx_key_code);
-  fflush(stderr);
+  int javafx_key_code = env->CallIntMethod(key_code_obj, key_code_get_code_mid);
 
   // Get the character string from the key event
   jstring character_str =
@@ -2007,9 +1899,6 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
     const jchar* chars = env->GetStringChars(character_str, nullptr);
     if (chars && env->GetStringLength(character_str) > 0) {
       key_char = chars[0];
-      fprintf(stderr, "[DEBUG] Key character: '%c' (0x%04X)\n", (char)key_char,
-              key_char);
-      fflush(stderr);
       env->ReleaseStringChars(character_str, chars);
     }
     env->DeleteLocalRef(character_str);
@@ -2020,11 +1909,6 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
   jboolean is_shift_down = env->CallBooleanMethod(key_event, isShiftDown_mid);
   jboolean is_alt_down = env->CallBooleanMethod(key_event, isAltDown_mid);
   jboolean is_meta_down = env->CallBooleanMethod(key_event, isMetaDown_mid);
-
-  fprintf(stderr,
-          "[DEBUG] Modifiers: Ctrl=%d, Shift=%d, Alt=%d, Meta=%d\n",
-          is_ctrl_down, is_shift_down, is_alt_down, is_meta_down);
-  fflush(stderr);
 
   // Build CEF modifiers from JavaFX modifiers
   int cef_modifiers = 0;
@@ -2037,24 +1921,15 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
   if (is_meta_down)
     cef_modifiers |= EVENTFLAG_COMMAND_DOWN;
 
-  fprintf(stderr, "[DEBUG] CEF modifiers: 0x%08X\n", cef_modifiers);
-  fflush(stderr);
-
   // Create CEF key event
   CefKeyEvent cef_event;
   cef_event.type = cef_event_type;
   cef_event.modifiers = cef_modifiers;
 
 #if defined(OS_WIN)
-  fprintf(stderr, "[DEBUG] Platform: Windows\n");
-  fflush(stderr);
 
   // Map JavaFX KeyCode to Windows virtual key code
-  cef_event.windows_key_code =
-      JavaFXKeyCodeToWindowsKeyCode(javafx_key_code);
-  fprintf(stderr, "[DEBUG] Windows key code: 0x%04X\n",
-          cef_event.windows_key_code);
-  fflush(stderr);
+  cef_event.windows_key_code = JavaFXKeyCodeToWindowsKeyCode(javafx_key_code);
 
   // For KEY_PRESSED and KEY_RELEASED, include scan code
   if (cef_event_type == KEYEVENT_RAWKEYDOWN ||
@@ -2067,32 +1942,18 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
     if (cef_event_type == KEYEVENT_KEYUP) {
       cef_event.native_key_code |= 0xC0000000;
     }
-    fprintf(stderr, "[DEBUG] Native key code: 0x%08X\n",
-            cef_event.native_key_code);
-    fflush(stderr);
   } else if (cef_event_type == KEYEVENT_CHAR) {
     cef_event.windows_key_code = key_char;
   }
 
 #elif defined(OS_LINUX)
-  fprintf(stderr, "[DEBUG] Platform: Linux\n");
-  fflush(stderr);
-
   // Map JavaFX KeyCode to X11 keysym
   unsigned int x11_keysym = JavaFXKeyCodeToXKeysym(javafx_key_code);
   cef_event.native_key_code = x11_keysym;
-  fprintf(stderr, "[DEBUG] X11 keysym: 0x%08X\n", x11_keysym);
-  fflush(stderr);
 
   // Convert X11 keysym to Windows key code for CEF
-  KeyboardCode windows_key_code =
-      KeyboardCodeFromXKeysym(cef_event.native_key_code);
-  cef_event.windows_key_code =
-      GetWindowsKeyCodeWithoutLocation(windows_key_code);
-
-  fprintf(stderr, "[DEBUG] Windows key code: 0x%04X\n",
-          cef_event.windows_key_code);
-  fflush(stderr);
+  KeyboardCode windows_key_code = KeyboardCodeFromXKeysym(cef_event.native_key_code);
+  cef_event.windows_key_code = GetWindowsKeyCodeWithoutLocation(windows_key_code);
 
   // Set system key flag for Alt
   if (cef_event.modifiers & EVENTFLAG_ALT_DOWN)
@@ -2108,28 +1969,14 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
 
   // Handle control characters
   if (cef_event.modifiers & EVENTFLAG_CONTROL_DOWN) {
-    cef_event.character = GetControlCharacter(
-        windows_key_code, cef_event.modifiers & EVENTFLAG_SHIFT_DOWN);
+    cef_event.character = GetControlCharacter(windows_key_code, cef_event.modifiers & EVENTFLAG_SHIFT_DOWN);
   } else {
     cef_event.character = cef_event.unmodified_character;
   }
 
-  fprintf(stderr,
-          "[DEBUG] Character: 0x%02X, Unmodified: 0x%02X, Is system key: %d\n",
-          cef_event.character, cef_event.unmodified_character,
-          cef_event.is_system_key);
-  fflush(stderr);
-
 #elif defined(OS_MACOSX)
-  fprintf(stderr, "[DEBUG] Platform: macOS\n");
-  fflush(stderr);
-
   // Map JavaFX KeyCode to Mac key code
   cef_event.native_key_code = JavaFXKeyCodeToMacKeyCode(javafx_key_code);
-  fprintf(stderr, "[DEBUG] macOS key code: 0x%04X\n",
-          cef_event.native_key_code);
-  fflush(stderr);
-
   cef_event.unmodified_character = key_char;
   cef_event.character = key_char;
 
@@ -2154,22 +2001,8 @@ Java_com_techsenger_ceffx_core_browser_CefBrowser_1N_N_1SendKeyEvent(
       cef_event.character = GetMacControlCharacter(cef_event.native_key_code);
   }
 #endif
-
-  // Log the final event details
-  fprintf(stderr, "[DEBUG] Sending key event to browser...\n");
-  fflush(stderr);
-  fprintf(stderr,
-          "[DEBUG] Final event: type=%d, keyCode=%d, nativeCode=0x%X, "
-          "char=0x%02X, modifiers=0x%X\n",
-          cef_event.type, cef_event.windows_key_code,
-          cef_event.native_key_code, cef_event.character, cef_event.modifiers);
-  fflush(stderr);
-
   // Send the key event to the browser
   browser->GetHost()->SendKeyEvent(cef_event);
-
-  fprintf(stderr, "[DEBUG] Key event sent successfully\n");
-  fflush(stderr);
 
   // Clean up all local JNI references
   env->DeleteLocalRef(event_type_obj);
