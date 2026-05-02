@@ -37,7 +37,7 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignT;
  */
 public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> implements BrowserTabView {
 
-    public class Composer extends AbstractTabFxView<BrowserTabPresenter>.Composer implements BrowserTabComposer {
+    public class Composer extends AbstractTabFxView<BrowserTabPresenter>.Composer implements BrowserTabView.Composer {
 
         private final BrowserTabFxView view = BrowserTabFxView.this;
 

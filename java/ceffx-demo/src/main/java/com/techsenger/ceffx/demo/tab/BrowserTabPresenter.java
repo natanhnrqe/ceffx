@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Pavel Castornii
  */
-public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView, BrowserTabComposer>
-        implements BrowserTabPort {
+public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView> implements BrowserTabPort {
 
     private enum FavIconType {
         ICO, PNG
@@ -200,11 +199,11 @@ public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView, Br
     }
 
     protected void openDevTools() {
-        getComposer().addDevTools(this.shellContext.getSettings(), this.shellContext.getHistoryManager());
+        getView().getComposer().addDevTools(this.shellContext.getSettings(), this.shellContext.getHistoryManager());
     }
 
     protected void closeDevTools() {
-        getComposer().removeDevTools();
+        getView().getComposer().removeDevTools();
     }
 
     protected void onBrowserDevTools() {
