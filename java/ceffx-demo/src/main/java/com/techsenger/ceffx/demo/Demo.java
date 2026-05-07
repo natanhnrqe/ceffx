@@ -232,6 +232,8 @@ public class Demo extends Application {
                 }
             });
         });
+
+        stage.show();
     }
 
     private void createShell(Stage stage) {
