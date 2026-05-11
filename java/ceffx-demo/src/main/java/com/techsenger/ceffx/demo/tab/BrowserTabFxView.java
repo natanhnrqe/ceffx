@@ -8,7 +8,7 @@ package com.techsenger.ceffx.demo.tab;
 
 import com.techsenger.tabshell.core.ShellFxView;
 import com.techsenger.tabshell.core.history.HistoryManager;
-import com.techsenger.tabshell.core.settings.Settings;
+import com.techsenger.tabshell.core.settings.ShellSettings;
 import com.techsenger.tabshell.core.tab.AbstractTabFxView;
 import com.techsenger.tabshell.devtools.DevToolsHostType;
 import com.techsenger.tabshell.devtools.DevToolsTabDockFxView;
@@ -44,7 +44,7 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
 
         private DevToolsTabDockFxView<?> devTools;
 
-        public void addDevTools(Settings settings, HistoryManager historyManager) {
+        public void addDevTools(ShellSettings settings, HistoryManager historyManager) {
             if (devTools != null) {
                 return;
             }

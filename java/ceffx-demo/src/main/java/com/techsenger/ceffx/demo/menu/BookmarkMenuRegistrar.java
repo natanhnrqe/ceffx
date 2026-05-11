@@ -65,7 +65,7 @@ public class BookmarkMenuRegistrar extends AbstractControlRegistrar {
             var menu = new ManagedMenu(BookmarkMenu.NAME, "_Bookmarks", 100);
             return menu;
         };
-        addRegistration(getRegistry().mainMenu().registerMenu(null, f));
+        addRegistration(getRegistry().mainMenu().registerMenu(f));
     }
 
     protected void registerGroups() {

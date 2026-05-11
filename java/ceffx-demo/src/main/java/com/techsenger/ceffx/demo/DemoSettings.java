@@ -8,13 +8,13 @@ package com.techsenger.ceffx.demo;
 
 import com.techsenger.tabshell.core.settings.AppearanceSettings;
 import com.techsenger.tabshell.core.settings.DefaultAppearanceSettings;
-import com.techsenger.tabshell.core.settings.Settings;
+import com.techsenger.tabshell.core.settings.ShellSettings;
 
 /**
  *
  * @author Pavel Castornii
  */
-public class DemoSettings implements Settings {
+public class DemoSettings implements ShellSettings {
 
     private final AppearanceSettings appearance = new DefaultAppearanceSettings();
 

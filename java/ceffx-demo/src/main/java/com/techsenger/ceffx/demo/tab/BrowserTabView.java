@@ -7,7 +7,7 @@
 package com.techsenger.ceffx.demo.tab;
 
 import com.techsenger.tabshell.core.history.HistoryManager;
-import com.techsenger.tabshell.core.settings.Settings;
+import com.techsenger.tabshell.core.settings.ShellSettings;
 import com.techsenger.tabshell.core.tab.TabView;
 import javafx.scene.Cursor;
 
@@ -19,7 +19,7 @@ public interface BrowserTabView extends TabView {
 
     interface Composer extends TabView.Composer {
 
-        void addDevTools(Settings settings, HistoryManager historyManager);
+        void addDevTools(ShellSettings settings, HistoryManager historyManager);
 
         void removeDevTools();
     }

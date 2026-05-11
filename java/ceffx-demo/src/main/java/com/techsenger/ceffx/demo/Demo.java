@@ -41,7 +41,8 @@ import com.techsenger.tabshell.core.DefaultShellFxView;
 import com.techsenger.tabshell.core.DefaultShellPresenter;
 import com.techsenger.tabshell.core.ShellFxView;
 import com.techsenger.tabshell.core.history.InMemoryHistoryManager;
-import com.techsenger.tabshell.core.settings.Settings;
+import com.techsenger.tabshell.core.registry.ControlRegistry;
+import com.techsenger.tabshell.core.settings.ShellSettings;
 import com.techsenger.tabshell.core.tab.TabContainerFxView;
 import com.techsenger.tabshell.icons.IconStylesheetFactory;
 import com.techsenger.tabshell.layout.tabhost.TabHostFxView;
@@ -126,7 +127,7 @@ public class Demo extends Application {
         return settings;
     }
 
-    private static Settings createShellSettings() {
+    private static ShellSettings createShellSettings() {
         var settings = new DemoSettings();
         var appearance = settings.getAppearance();
         appearance.setRegularFont(Font.font("System", 14));
@@ -239,7 +240,7 @@ public class Demo extends Application {
     private void createShell(Stage stage) {
         var stylesheets = new ArrayList<>(IconStylesheetFactory.forAll());
         stylesheets.add(new Stylesheet(Demo.class.getResource("demo.css")));
-        var shellView = new DefaultShellFxView<>(this, stage, stylesheets);
+        var shellView = new DefaultShellFxView<>(this, stage, stylesheets, new ControlRegistry());
         this.shell = shellView;
         var settings = createShellSettings();
         var context = new DefaultShellContext(settings, new InMemoryHistoryManager(), getHostServices());
