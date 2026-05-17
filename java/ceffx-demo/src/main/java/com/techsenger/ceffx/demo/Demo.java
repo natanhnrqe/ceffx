@@ -27,6 +27,7 @@ import com.techsenger.ceffx.core.network.CefRequest;
 import com.techsenger.ceffx.demo.menu.BookmarkMenuRegistrar;
 import com.techsenger.ceffx.demo.menu.FileMenuRegistrar;
 import com.techsenger.ceffx.demo.tab.BrowserTabFxView;
+import com.techsenger.ceffx.demo.tab.BrowserTabParams;
 import com.techsenger.ceffx.demo.tab.BrowserTabPort;
 import com.techsenger.ceffx.demo.tab.BrowserTabPresenter;
 import com.techsenger.ceffx.demo.tab.ChangeSource;
@@ -38,8 +39,10 @@ import com.techsenger.tabpanepro.core.skin.TabPaneProSkin.TabHeaderArea;
 import com.techsenger.tabshell.core.CloseCheckResult;
 import com.techsenger.tabshell.core.DefaultShellContext;
 import com.techsenger.tabshell.core.DefaultShellFxView;
+import com.techsenger.tabshell.core.DefaultShellParams;
 import com.techsenger.tabshell.core.DefaultShellPresenter;
 import com.techsenger.tabshell.core.ShellFxView;
+import com.techsenger.tabshell.core.area.AreaParams;
 import com.techsenger.tabshell.core.history.InMemoryHistoryManager;
 import com.techsenger.tabshell.core.registry.ControlRegistry;
 import com.techsenger.tabshell.core.settings.ShellSettings;
@@ -244,7 +247,8 @@ public class Demo extends Application {
         this.shell = shellView;
         var settings = createShellSettings();
         var context = new DefaultShellContext(settings, new InMemoryHistoryManager(), getHostServices());
-        var shellPresenter = new DefaultShellPresenter<>(shellView, context) {
+        var shellParams = new DefaultShellParams(context);
+        var shellPresenter = new DefaultShellPresenter<>(shellView, shellParams) {
             @Override
             public CloseCheckResult isReadyToClose() {
                 if (workspace.getComposer().getTabs().isEmpty()) {
@@ -275,7 +279,7 @@ public class Demo extends Application {
         newTabButton.getStyleClass().addAll(Styles.FLAT, StyleClasses.ICON_BUTTON);
         newTabButton.setOnAction((e) -> onNewTab(null));
         stickyArea.getChildren().add(newTabButton);
-        var workspacePresenter = new TabHostPresenter<>(workspaceView);
+        var workspacePresenter = new TabHostPresenter<>(workspaceView, new AreaParams());
         workspacePresenter.initialize();
         shell.getComposer().addWorkspace(workspaceView);
     }
@@ -298,7 +302,8 @@ public class Demo extends Application {
                 browserCount.incrementAndGet();
                 Platform.runLater(() -> {
                     var tabView = new BrowserTabFxView(shell, browser.getPane());
-                    var tabPresenter = new BrowserTabPresenter(tabView, shell.getPresenter().getContext(), browser);
+                    var tabParams = new BrowserTabParams(shell.getPresenter().getContext(), browser);
+                    var tabPresenter = new BrowserTabPresenter(tabView, tabParams);
                     tabPresenter.initialize();
                     browser.getProperties().put(TAB_COMPONENT, tabPresenter);
                     workspace.getComposer().addTab(tabView);

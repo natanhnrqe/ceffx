@@ -9,7 +9,7 @@ package com.techsenger.ceffx.demo.tab;
 import com.techsenger.ceffx.core.CefApp;
 import com.techsenger.ceffx.core.browser.CefBrowserBase;
 import com.techsenger.ceffx.demo.DemoComponents;
-import com.techsenger.patternfx.mvp.Descriptor;
+import com.techsenger.patternfx.mvp.ComponentDescriptor;
 import com.techsenger.tabshell.core.CloseCheckResult;
 import com.techsenger.tabshell.core.ClosePreparationResult;
 import com.techsenger.tabshell.core.ShellContext;
@@ -95,10 +95,10 @@ public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView> im
 
     private volatile boolean darkTheme = true;
 
-    public BrowserTabPresenter(BrowserTabView view, ShellContext context, CefBrowserBase browser) {
-        super(view);
-        this.shellContext = context;
-        this.browser = browser;
+    public BrowserTabPresenter(BrowserTabView view, BrowserTabParams params) {
+        super(view, params);
+        this.shellContext = params.getContext();
+        this.browser = params.getBrowser();
     }
 
     @Override
@@ -184,8 +184,8 @@ public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView> im
     }
 
     @Override
-    protected Descriptor createDescriptor() {
-        return new Descriptor(DemoComponents.BROWSER_TAB);
+    protected ComponentDescriptor createDescriptor() {
+        return new ComponentDescriptor(DemoComponents.BROWSER_TAB);
     }
 
     protected void onAddressSubmitted() {

@@ -12,6 +12,7 @@ import com.techsenger.tabshell.core.settings.ShellSettings;
 import com.techsenger.tabshell.core.tab.AbstractTabFxView;
 import com.techsenger.tabshell.devtools.DevToolsHostType;
 import com.techsenger.tabshell.devtools.DevToolsTabDockFxView;
+import com.techsenger.tabshell.devtools.DevToolsTabDockParams;
 import com.techsenger.tabshell.devtools.DevToolsTabDockPresenter;
 import com.techsenger.tabshell.material.style.StyleClasses;
 import com.techsenger.toolkit.fx.utils.NodeUtils;
@@ -56,7 +57,8 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
                     getCloseButton().setOnAction(e -> view.getPresenter().closeDevTools());
                 }
             };
-            var presenter = new DevToolsTabDockPresenter<>(devTools, DevToolsHostType.OTHER, settings, historyManager);
+            var params = new DevToolsTabDockParams(DevToolsHostType.OTHER, settings, historyManager);
+            var presenter = new DevToolsTabDockPresenter<>(devTools, params);
             presenter.initialize();
             getModifiableChildren().add(devTools);
             var slplitPane = new SplitPane(content, devTools.getNode());
