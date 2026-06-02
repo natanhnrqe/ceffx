@@ -252,7 +252,7 @@ public class Demo extends Application {
             @Override
             public CloseCheckResult isReadyToClose() {
                 if (workspace.getComposer().getTabs().isEmpty()) {
-                    shell.getPresenter().setOnClose(() -> {
+                    shell.getPresenter().setOnClosed(() -> {
                         CefApp.runLater(() -> CefApp.getInstance().dispose());
                     });
                 } else {
