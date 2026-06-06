@@ -36,7 +36,6 @@ import com.techsenger.tabpanepro.core.TabPanePro;
 import com.techsenger.tabpanepro.core.skin.TabHeaderAreaPolicy;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin.TabHeaderArea;
-import com.techsenger.tabshell.core.CloseCheckResult;
 import com.techsenger.tabshell.core.DefaultShellContext;
 import com.techsenger.tabshell.core.DefaultShellFxView;
 import com.techsenger.tabshell.core.DefaultShellParams;
@@ -77,9 +76,8 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
  * <p><b>If there are open tabs:</b>
  * <ol>
  *     <li>A window close is triggered.</li>
- *     <li>{@code shellPresenter.requestClose()} is invoked.</li>
- *     <li>{@code shellPresenter.isReadyToClose()} is evaluated.</li>
- *     <li>{@code shellPresenter.close()} is called.</li>
+ *     <li>{@code shellPresenter.getOnCloseRequest()} is invoked.</li>
+ *     <li>{@code shellPresenter.closeSafely()} is called.</li>
  *     <li>All tabs are deinitialized.</li>
  *     <li>Each tab performs {@code postDeinitialize()}, which calls {@code browser.close(boolean)}.</li>
  *     <li>{@code CefLifeSpanHandler.onBeforeClose()} is invoked.</li>
@@ -89,10 +87,9 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
  * <p><b>If there are no open tabs:</b>
  * <ol>
  *     <li>A window close is triggered.</li>
- *     <li>{@code shellPresenter.requestClose()} is invoked.</li>
- *     <li>{@code shellPresenter.isReadyToClose()} is evaluated.</li>
- *     <li>{@code shellPresenter.close()} is called.</li>
- *     <li>{@code shellPresenter.onClose()} is invoked.</li>
+ *     <li>{@code shellPresenter.getOnCloseRequest()} is invoked.</li>
+ *     <li>{@code shellPresenter.closeSafely()} is called.</li>
+ *     <li>{@code shellPresenter.getOnClosed()} is invoked.</li>
  *     <li>{@code CefApp.dispose()} is invoked.</li>
  * </ol>
  *
@@ -248,21 +245,20 @@ public class Demo extends Application {
         var settings = createShellSettings();
         var context = new DefaultShellContext(settings, new InMemoryHistoryManager(), getHostServices());
         var shellParams = new DefaultShellParams(context);
-        var shellPresenter = new DefaultShellPresenter<>(shellView, shellParams) {
-            @Override
-            public CloseCheckResult isReadyToClose() {
-                if (workspace.getComposer().getTabs().isEmpty()) {
-                    shell.getPresenter().setOnClosed(() -> {
-                        CefApp.runLater(() -> CefApp.getInstance().dispose());
-                    });
-                } else {
-                    isExit = true;
-                }
-                return CloseCheckResult.READY;
-            }
-        };
+        var shellPresenter = new DefaultShellPresenter<>(shellView, shellParams);
         shellPresenter.initialize();
+        shellView.getWindow().getScene().getRoot().getStyleClass().add(StyleClasses.DENSITY_S);
         shellPresenter.setTitle("CEFFX Demo");
+        shellPresenter.setOnCloseRequest(() -> {
+            if (workspace.getComposer().getTabs().isEmpty()) {
+                shellPresenter.setOnClosed(() -> {
+                    CefApp.runLater(() -> CefApp.getInstance().dispose());
+                });
+            } else {
+                isExit = true;
+            }
+            shellPresenter.closeSafely();
+        });
     }
 
     private void createWorkspace() {

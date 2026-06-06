@@ -57,7 +57,7 @@ public class FileMenuRegistrar extends AbstractControlRegistrar {
             var handler = new AbstractMenuItemHandler<ShellFxView<?>>(item, shell) {
                 @Override
                 public void onAction() {
-                    shell.getPresenter().requestClose();
+                    shell.getPresenter().closeSafely();
                 }
             };
             MenuItemHandler.setHandler(item, handler);

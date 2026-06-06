@@ -83,7 +83,7 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
 
     private final Button devToolsButton = new Button(null, new FontIcon(MaterialDesignT.TOOLS));
 
-    private final ToolBar toolBar = new ToolBar(backButton, forwardButton, addressTextField, createMenuButton(),
+    private final ToolBar toolBar = new ToolBar(backButton, forwardButton, addressTextField, 
             devToolsButton);
 
     private final VBox content = new VBox(toolBar);
@@ -123,9 +123,9 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
     @Override
     protected void build() {
         super.build();
-        forwardButton.getStyleClass().add(StyleClasses.ICON_BUTTON);
-        backButton.getStyleClass().add(StyleClasses.ICON_BUTTON);
-        devToolsButton.getStyleClass().add(StyleClasses.ICON_BUTTON);
+        forwardButton.getStyleClass().addAll(StyleClasses.ICON_BUTTON, StyleClasses.SIZE_L);
+        backButton.getStyleClass().addAll(StyleClasses.ICON_BUTTON, StyleClasses.SIZE_L);
+        devToolsButton.getStyleClass().addAll(StyleClasses.ICON_BUTTON, StyleClasses.SIZE_L);
         VBox.setVgrow(browserPane, Priority.ALWAYS);
         HBox.setHgrow(addressTextField, Priority.ALWAYS);
         content.getChildren().add(browserPane);
