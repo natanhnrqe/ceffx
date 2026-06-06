@@ -83,7 +83,7 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
 
     private final Button devToolsButton = new Button(null, new FontIcon(MaterialDesignT.TOOLS));
 
-    private final ToolBar toolBar = new ToolBar(backButton, forwardButton, addressTextField, 
+    private final ToolBar toolBar = new ToolBar(backButton, forwardButton, addressTextField, createMenuButton(),
             devToolsButton);
 
     private final VBox content = new VBox(toolBar);
