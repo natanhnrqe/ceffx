@@ -6,15 +6,15 @@
 
 package com.techsenger.ceffx.demo.menu;
 
-import com.techsenger.tabshell.core.ShellFxView;
-import com.techsenger.tabshell.core.menu.AbstractMenuItemHandler;
-import com.techsenger.tabshell.core.menu.MenuItemHandler;
-import com.techsenger.tabshell.core.registry.AbstractControlRegistrar;
-import com.techsenger.tabshell.core.registry.ControlFactory;
-import com.techsenger.tabshell.core.registry.ControlRegistry;
-import com.techsenger.tabshell.material.menu.ManagedMenu;
-import com.techsenger.tabshell.material.menu.ManagedMenuGroup;
-import com.techsenger.tabshell.material.menu.ManagedMenuItem;
+import com.techsenger.shellfx.core.ShellFxView;
+import com.techsenger.shellfx.core.menu.AbstractMenuItemHandler;
+import com.techsenger.shellfx.core.menu.MenuItemHandler;
+import com.techsenger.shellfx.core.registry.AbstractControlRegistrar;
+import com.techsenger.shellfx.core.registry.ControlFactory;
+import com.techsenger.shellfx.core.registry.ControlRegistry;
+import com.techsenger.shellfx.material.menu.ManagedMenu;
+import com.techsenger.shellfx.material.menu.ManagedMenuGroup;
+import com.techsenger.shellfx.material.menu.ManagedMenuItem;
 
 /**
  *

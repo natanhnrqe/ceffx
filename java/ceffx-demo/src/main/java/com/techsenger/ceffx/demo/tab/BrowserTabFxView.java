@@ -6,15 +6,15 @@
 
 package com.techsenger.ceffx.demo.tab;
 
-import com.techsenger.tabshell.core.ShellFxView;
-import com.techsenger.tabshell.core.history.HistoryManager;
-import com.techsenger.tabshell.core.settings.ShellSettings;
-import com.techsenger.tabshell.core.tab.AbstractTabFxView;
-import com.techsenger.tabshell.devtools.DevToolsHostType;
-import com.techsenger.tabshell.devtools.DevToolsTabDockFxView;
-import com.techsenger.tabshell.devtools.DevToolsTabDockParams;
-import com.techsenger.tabshell.devtools.DevToolsTabDockPresenter;
-import com.techsenger.tabshell.material.style.StyleClasses;
+import com.techsenger.shellfx.core.ShellFxView;
+import com.techsenger.shellfx.core.history.HistoryManager;
+import com.techsenger.shellfx.core.settings.ShellSettings;
+import com.techsenger.shellfx.core.tab.AbstractTabFxView;
+import com.techsenger.shellfx.devtools.DevToolsHostType;
+import com.techsenger.shellfx.devtools.DevToolsTabDockFxView;
+import com.techsenger.shellfx.devtools.DevToolsTabDockParams;
+import com.techsenger.shellfx.devtools.DevToolsTabDockPresenter;
+import com.techsenger.shellfx.material.style.StyleClasses;
 import com.techsenger.toolkit.fx.utils.NodeUtils;
 import javafx.geometry.Orientation;
 import javafx.scene.Cursor;

@@ -6,10 +6,10 @@
 
 package com.techsenger.ceffx.demo.menu;
 
-import com.techsenger.tabshell.material.menu.DefaultMenuGroupName;
-import com.techsenger.tabshell.material.menu.DefaultMenuName;
-import com.techsenger.tabshell.material.menu.MenuGroupName;
-import com.techsenger.tabshell.material.menu.MenuName;
+import com.techsenger.shellfx.material.menu.DefaultMenuGroupName;
+import com.techsenger.shellfx.material.menu.DefaultMenuName;
+import com.techsenger.shellfx.material.menu.MenuGroupName;
+import com.techsenger.shellfx.material.menu.MenuName;
 
 /**
  *

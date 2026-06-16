@@ -7,8 +7,8 @@
 package com.techsenger.ceffx.demo.tab;
 
 import com.techsenger.ceffx.core.browser.CefBrowserBase;
-import com.techsenger.tabshell.core.ShellContext;
-import com.techsenger.tabshell.core.tab.TabParams;
+import com.techsenger.shellfx.core.ShellContext;
+import com.techsenger.shellfx.core.tab.TabParams;
 
 /**
  *

@@ -32,26 +32,27 @@ import com.techsenger.ceffx.demo.tab.BrowserTabPort;
 import com.techsenger.ceffx.demo.tab.BrowserTabPresenter;
 import com.techsenger.ceffx.demo.tab.ChangeSource;
 import com.techsenger.ceffx.natives.NativeExtractor;
+import com.techsenger.shellfx.core.DefaultShellContext;
+import com.techsenger.shellfx.core.DefaultShellFxView;
+import com.techsenger.shellfx.core.DefaultShellParams;
+import com.techsenger.shellfx.core.DefaultShellPresenter;
+import com.techsenger.shellfx.core.ShellFxView;
+import com.techsenger.shellfx.core.area.AreaParams;
+import com.techsenger.shellfx.core.history.InMemoryHistoryManager;
+import com.techsenger.shellfx.core.registry.ControlRegistry;
+import com.techsenger.shellfx.core.settings.Density;
+import com.techsenger.shellfx.core.settings.ShellSettings;
+import com.techsenger.shellfx.core.tab.TabContainerFxView;
+import com.techsenger.shellfx.icons.IconStylesheetFactory;
+import com.techsenger.shellfx.layout.tabhost.TabHostFxView;
+import com.techsenger.shellfx.layout.tabhost.TabHostPresenter;
+import com.techsenger.shellfx.material.style.StyleClasses;
+import com.techsenger.shellfx.material.style.Stylesheet;
+import com.techsenger.shellfx.material.theme.AtlantaFxTheme;
 import com.techsenger.tabpanepro.core.TabPanePro;
 import com.techsenger.tabpanepro.core.skin.TabHeaderAreaPolicy;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin.TabHeaderArea;
-import com.techsenger.tabshell.core.DefaultShellContext;
-import com.techsenger.tabshell.core.DefaultShellFxView;
-import com.techsenger.tabshell.core.DefaultShellParams;
-import com.techsenger.tabshell.core.DefaultShellPresenter;
-import com.techsenger.tabshell.core.ShellFxView;
-import com.techsenger.tabshell.core.area.AreaParams;
-import com.techsenger.tabshell.core.history.InMemoryHistoryManager;
-import com.techsenger.tabshell.core.registry.ControlRegistry;
-import com.techsenger.tabshell.core.settings.ShellSettings;
-import com.techsenger.tabshell.core.tab.TabContainerFxView;
-import com.techsenger.tabshell.icons.IconStylesheetFactory;
-import com.techsenger.tabshell.layout.tabhost.TabHostFxView;
-import com.techsenger.tabshell.layout.tabhost.TabHostPresenter;
-import com.techsenger.tabshell.material.style.StyleClasses;
-import com.techsenger.tabshell.material.style.Stylesheet;
-import com.techsenger.tabshell.material.theme.AtlantaFxTheme;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -133,6 +134,7 @@ public class Demo extends Application {
         appearance.setRegularFont(Font.font("System", 14));
         appearance.setMonospaceFont(Font.font("Monospace", 14));
         appearance.setTheme(AtlantaFxTheme.CUPERTINO_DARK);
+        appearance.setDensity(Density.S);
         return settings;
     }
 
@@ -247,7 +249,7 @@ public class Demo extends Application {
         var shellParams = new DefaultShellParams(context);
         var shellPresenter = new DefaultShellPresenter<>(shellView, shellParams);
         shellPresenter.initialize();
-        shellView.getWindow().getScene().getRoot().getStyleClass().add(StyleClasses.DENSITY_S);
+        shellView.getStage().getScene().getRoot().getStyleClass().add(StyleClasses.DENSITY_S);
         shellPresenter.setTitle("CEFFX Demo");
         shellPresenter.setOnCloseRequest(() -> {
             if (workspace.getComposer().getTabs().isEmpty()) {

@@ -6,9 +6,9 @@
 
 package com.techsenger.ceffx.demo.tab;
 
-import com.techsenger.tabshell.core.history.HistoryManager;
-import com.techsenger.tabshell.core.settings.ShellSettings;
-import com.techsenger.tabshell.core.tab.TabView;
+import com.techsenger.shellfx.core.history.HistoryManager;
+import com.techsenger.shellfx.core.settings.ShellSettings;
+import com.techsenger.shellfx.core.tab.TabView;
 import javafx.scene.Cursor;
 
 /**

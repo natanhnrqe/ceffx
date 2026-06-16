@@ -18,11 +18,11 @@ module com.techsenger.ceffx.demo {
     requires com.techsenger.patternfx.core;
     requires com.techsenger.patternfx.mvp;
     requires com.techsenger.tabpanepro.core;
-    requires com.techsenger.tabshell.core;
-    requires com.techsenger.tabshell.icons;
-    requires com.techsenger.tabshell.material;
-    requires com.techsenger.tabshell.layout;
-    requires com.techsenger.tabshell.devtools;
+    requires com.techsenger.shellfx.core;
+    requires com.techsenger.shellfx.icons;
+    requires com.techsenger.shellfx.material;
+    requires com.techsenger.shellfx.layout;
+    requires com.techsenger.shellfx.devtools;
     requires com.techsenger.ceffx.natives;
     requires com.techsenger.ceffx.core;
 
