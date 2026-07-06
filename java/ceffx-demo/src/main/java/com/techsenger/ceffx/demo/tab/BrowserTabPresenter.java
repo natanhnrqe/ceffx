@@ -15,8 +15,8 @@ import com.techsenger.shellfx.core.ClosePreparationResult;
 import com.techsenger.shellfx.core.ShellContext;
 import com.techsenger.shellfx.core.UiExecutor;
 import com.techsenger.shellfx.core.tab.AbstractTabPresenter;
-import com.techsenger.shellfx.material.icon.FontIcon;
-import com.techsenger.shellfx.material.icon.ImageIcon;
+import com.techsenger.shellfx.material.icon.PlainFontIcon;
+import com.techsenger.shellfx.material.icon.PlainImageIcon;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -251,7 +251,7 @@ public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView> im
     protected void postInitialize() {
         super.postInitialize();
         setTitle("New Tab");
-        setIcon(new FontIcon(984479));
+        setIcon(new PlainFontIcon(984479));
     }
 
     @Override
@@ -283,7 +283,7 @@ public class BrowserTabPresenter extends AbstractTabPresenter<BrowserTabView> im
                     logger.debug("{} Loaded favicon from {} for {}", getDescriptor().getLogPrefix(),
                             iconUrl == null ? "resolved url" : iconUrl, location);
                     if (browser.getMainFrame().getURL().equals(location)) { // it hasn't changed)
-                        var icon = new ImageIcon(image);
+                        var icon = new PlainImageIcon(image);
                         UiExecutor.execute(() -> setIcon(icon));
                     }
                 }
