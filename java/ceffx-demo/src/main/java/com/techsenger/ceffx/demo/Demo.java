@@ -44,8 +44,12 @@ import com.techsenger.shellfx.core.settings.Density;
 import com.techsenger.shellfx.core.settings.ShellSettings;
 import com.techsenger.shellfx.core.tab.TabContainerFxView;
 import com.techsenger.shellfx.icons.IconStylesheetFactory;
+import com.techsenger.shellfx.icons.MdiIconFont;
 import com.techsenger.shellfx.layout.tabhost.TabHostFxView;
 import com.techsenger.shellfx.layout.tabhost.TabHostPresenter;
+import com.techsenger.shellfx.material.icon.FontIconView;
+import com.techsenger.shellfx.material.icon.PlainFontIcon;
+import com.techsenger.shellfx.material.style.IconStylesheets;
 import com.techsenger.shellfx.material.style.StyleClasses;
 import com.techsenger.shellfx.material.style.Stylesheet;
 import com.techsenger.shellfx.material.theme.AtlantaFxTheme;
@@ -55,7 +59,7 @@ import com.techsenger.tabpanepro.core.skin.TabPaneProSkin;
 import com.techsenger.tabpanepro.core.skin.TabPaneProSkin.TabHeaderArea;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -66,8 +70,6 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 
 /**
  * Demo application.
@@ -240,8 +242,10 @@ public class Demo extends Application {
     }
 
     private void createShell(Stage stage) {
-        var stylesheets = new ArrayList<>(IconStylesheetFactory.forAll());
-        stylesheets.add(new Stylesheet(Demo.class.getResource("demo.css")));
+        FontIconView.setDefaultIconFont(MdiIconFont.INSTANCE.getFamily());
+        IconStylesheets.addAll(IconStylesheetFactory.forAll());
+
+        var stylesheets = List.of(new Stylesheet(Demo.class.getResource("demo.css")));
         var shellView = new DefaultShellFxView<>(this, stage, stylesheets, new ControlRegistry());
         this.shell = shellView;
         var settings = createShellSettings();
@@ -273,7 +277,7 @@ public class Demo extends Application {
         tabHeaderArea.setPolicy(TabHeaderAreaPolicy.ALWAYS_VISIBLE);
         StackPane stickyArea = tabHeaderArea.getStickyArea();
         stickyArea.setPadding(new Insets(2, 0, 0, 0));
-        var newTabButton = new Button(null, new FontIcon(MaterialDesignP.PLUS));
+        var newTabButton = new Button(null, new FontIconView(new PlainFontIcon(0xF0415)));
         newTabButton.getStyleClass().addAll(Styles.FLAT, StyleClasses.ICON_BUTTON);
         newTabButton.setOnAction((e) -> onNewTab(null));
         stickyArea.getChildren().add(newTabButton);

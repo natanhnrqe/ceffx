@@ -12,8 +12,6 @@ module com.techsenger.ceffx.demo {
     requires javafx.graphics;
     requires javafx.controls;
     requires com.twelvemonkeys.imageio.bmp;
-    requires org.kordamp.ikonli.javafx;
-    requires org.kordamp.ikonli.materialdesign2;
     requires com.techsenger.toolkit.fx;
     requires com.techsenger.patternfx.core;
     requires com.techsenger.patternfx.mvp;

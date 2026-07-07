@@ -14,6 +14,8 @@ import com.techsenger.shellfx.devtools.DevToolsHostType;
 import com.techsenger.shellfx.devtools.DevToolsTabDockFxView;
 import com.techsenger.shellfx.devtools.DevToolsTabDockParams;
 import com.techsenger.shellfx.devtools.DevToolsTabDockPresenter;
+import com.techsenger.shellfx.material.icon.FontIconView;
+import com.techsenger.shellfx.material.icon.PlainFontIcon;
 import com.techsenger.shellfx.material.style.StyleClasses;
 import com.techsenger.toolkit.fx.utils.NodeUtils;
 import javafx.geometry.Orientation;
@@ -29,9 +31,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignA;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignT;
 
 /**
  *
@@ -75,13 +74,13 @@ public class BrowserTabFxView extends AbstractTabFxView<BrowserTabPresenter> imp
         }
     }
 
-    private final Button backButton = new Button(null, new FontIcon(MaterialDesignA.ARROW_LEFT));
+    private final Button backButton = new Button(null, new FontIconView(new PlainFontIcon(0xF004D)));
 
-    private final Button forwardButton = new Button(null, new FontIcon(MaterialDesignA.ARROW_RIGHT));
+    private final Button forwardButton = new Button(null, new FontIconView(new PlainFontIcon(0xF0054)));
 
     private final TextField addressTextField = new TextField();
 
-    private final Button devToolsButton = new Button(null, new FontIcon(MaterialDesignT.TOOLS));
+    private final Button devToolsButton = new Button(null, new FontIconView(new PlainFontIcon(0xF1064)));
 
     private final ToolBar toolBar = new ToolBar(backButton, forwardButton, addressTextField, createMenuButton(),
             devToolsButton);
