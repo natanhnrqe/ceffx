@@ -54,7 +54,7 @@ public class FileMenuRegistrar extends AbstractControlRegistrar {
     protected void registerExitItem() {
         ControlFactory<ShellFxView<?>, ManagedMenuItem> f = (v) -> {
             var item = new ManagedMenuItem("E_xit", 1000);
-            var handler = new AbstractMenuItemHandler<ShellFxView<?>>(item, shell) {
+            var handler = new AbstractMenuItemHandler<ShellFxView<?>, ManagedMenuItem>(shell, item) {
                 @Override
                 public void onAction() {
                     shell.getPresenter().closeSafely();

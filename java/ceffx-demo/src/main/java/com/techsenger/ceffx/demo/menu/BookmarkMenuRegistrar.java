@@ -82,7 +82,7 @@ public class BookmarkMenuRegistrar extends AbstractControlRegistrar {
     protected void registerBookmarkItem(Bookmark bookmark, MenuGroupName group, int pos) {
         ControlFactory<ShellFxView<?>, ManagedMenuItem> f = (v) -> {
             var item = new ManagedMenuItem(bookmark.title, pos);
-            var handler = new AbstractMenuItemHandler<ShellFxView<?>>(item, shell) {
+            var handler = new AbstractMenuItemHandler<ShellFxView<?>, ManagedMenuItem>(shell, item) {
                 @Override
                 public void onAction() {
                     tabOpener.open(bookmark.url);
