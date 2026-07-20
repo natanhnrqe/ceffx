@@ -113,7 +113,7 @@ The `ceffx.classifier` uses the same values as the OpenJFX classifiers:
 * linux (built using the `ubuntu-22.04` runner)
 * win (built using the `windows-2022` runner)
 * mac (built using the `macos-15-intel` runner)
-* mac-aarch64 (built using the `macos-15-arm64` runner)
+* mac-aarch64 (built using the `macos-15` runner)
 
 Note that Maven can set the `classifier` using a `profile`. See an example in the demo [pom.xml](java/ceffx-demo/pom.xml).
 
