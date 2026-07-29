@@ -171,6 +171,16 @@
                         <option>--enable-native-access=com.techsenger.ceffx.core</option>
                         <option>-Djavafx.enablePreview=true</option>
                         <option>-Dlog4j.configurationFile=src/main/resources/log4j2.xml</option>
+                        <option>--add-opens</option>
+                        <option>javafx.graphics/com.sun.prism.d3d=com.techsenger.ceffx.core</option>
+                        <option>--add-opens</option>
+                        <option>javafx.graphics/com.sun.prism=com.techsenger.ceffx.core</option>
+                        <option>--add-opens</option>
+                        <option>javafx.graphics/com.sun.javafx.graphics=com.techsenger.ceffx.core</option>
+                        <option>--add-opens</option>
+                        <option>javafx.graphics/com.sun.glass.ui=com.techsenger.ceffx.core</option>
+                        <option>-Dprism.order=d3d</option>
+                        <option>-Dprism.verbose=true</option>
                     </options>
                 </configuration>
             </plugin>

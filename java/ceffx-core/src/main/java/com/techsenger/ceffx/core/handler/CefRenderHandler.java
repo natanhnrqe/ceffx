@@ -67,6 +67,38 @@ public interface CefRenderHandler {
             ByteBuffer buffer, int width, int height);
 
     /**
+     * Handle accelerated painting. This is called instead of {@link #onPaint}
+     * when shared-texture rendering is enabled in the native CefWindowInfo.
+     *
+     * <p>The {@code sharedTextureHandle} is a {@code long} representation of a
+     * native Windows {@code HANDLE} to a Direct3D 11 texture owned by the
+     * native CEFFX library (a private copy of the Chromium frame). It is stable
+     * across frames (the identity of the underlying texture object is reused,
+     * only its contents change) and MUST be reopened on the JavaFX Prism
+     * Direct3D device via {@code ID3D11Device1::OpenSharedResource1} each
+     * time a new frame needs to be consumed.</p>
+     *
+     * <p>Implementations that do not support accelerated rendering should leave
+     * the default no-op body; the native side will fall back to the software
+     * {@link #onPaint} path automatically if the GPU cannot honour the shared
+     * texture request.</p>
+     *
+     * @param browser The browser generating the event.
+     * @param popup True if painting a popup window.
+     * @param dirtyRects Array of dirty regions.
+     * @param sharedTextureHandle Native HANDLE (as a long) to the D3D11
+     *        texture containing the frame. Owned by the native library; do
+     *        NOT close it from Java.
+     * @param width Width of the texture, in pixels.
+     * @param height Height of the texture, in pixels.
+     */
+    public default void onAcceleratedPaint(CefBrowser browser, boolean popup,
+            BoundingBox[] dirtyRects, long sharedTextureHandle, int width, int height) {
+        // Default implementation deliberately empty: callers without an
+        // accelerated renderer fall through to the software onPaint path.
+    }
+
+    /**
      * Add provided listener.
      * @param listener Code that gets executed after a frame was rendered.
      */

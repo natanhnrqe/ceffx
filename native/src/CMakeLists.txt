@@ -165,6 +165,8 @@ set(CEFFX_SRCS_MAC
 set(CEFFX_SRCS_WINDOWS
   critical_wait_win.cpp
   ceffx_dll.rc
+  d3d11_texture_pool.cpp
+  d3d11_texture_pool.h
   temp_window_win.cc
   temp_window_win.h
   util_win.cpp
@@ -403,6 +405,9 @@ if(OS_WINDOWS)
   add_dependencies(${CEFFX_TARGET} libcef_dll_wrapper ${CEFFX_HELPER_TARGET})
   target_link_libraries(${CEFFX_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS} ${JNI_LIBRARIES})
   target_include_directories(${CEFFX_TARGET} PUBLIC ${JNI_INCLUDE_DIRS})
+
+  # Link Direct3D 11 / DXGI for the accelerated paint texture pool.
+  target_link_libraries(${CEFFX_TARGET} d3d11.lib dxgi.lib)
 
   # Compile flags specific to the CEFFX library target.
   # USING_JAVA          = Add the USING_JAVA define.

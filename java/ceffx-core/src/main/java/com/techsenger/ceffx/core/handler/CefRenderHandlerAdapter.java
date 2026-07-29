@@ -41,6 +41,8 @@ public abstract class CefRenderHandlerAdapter implements CefRenderHandler {
     public void onPaint(CefBrowser browser, boolean popup, BoundingBox[] dirtyRects,
             ByteBuffer buffer, int width, int height) {}
 
+    // onAcceleratedPaint inherits its empty default body from CefRenderHandler;
+
     @Override
     public boolean onCursorChange(CefBrowser browser, int cursorType) {
         return false;

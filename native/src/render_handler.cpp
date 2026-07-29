@@ -4,8 +4,18 @@
 
 #include "render_handler.h"
 
+#include <algorithm>
+#include <climits>
+#include <memory>
+
 #include "client_handler.h"
 #include "jni_util.h"
+
+#if defined(OS_WIN)
+#include <windows.h>
+
+#include "d3d11_texture_pool.h"
+#endif
 
 namespace {
 
@@ -154,6 +164,15 @@ jobject NewJNIPoint2D(JNIEnv* env, double x, double y) {
 RenderHandler::RenderHandler(JNIEnv* env, jobject handler)
     : handle_(env, handler) {}
 
+RenderHandler::~RenderHandler() {
+#if defined(OS_WIN)
+  // Destroy the D3D11 device / local texture before the JNI handle goes away.
+  // We deliberately do NOT call back into Java from here (the CefBrowser is
+  // already gone by the time this destructor runs).
+  texture_pool_.reset();
+#endif
+}
+
 bool RenderHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                       CefRect& rect) {
   ScopedJNIEnv env;
@@ -286,6 +305,91 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser,
       jdirectBuffer.get(),
       width,
       height);
+}
+
+void RenderHandler::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser,
+                                       PaintElementType type,
+                                       const RectList& dirtyRects,
+                                       const CefAcceleratedPaintInfo& info) {
+#if defined(OS_WIN)
+  // The shared texture handle from Chromium is an NT HANDLE to a D3D11
+  // (Windows) texture. Per CEF documentation it is recycled by Chromium's
+  // frame pool THE MOMENT this callback returns, so we must copy its contents
+  // into our own texture before returning.
+  if (!info.shared_texture_handle || info.shared_texture_handle == INVALID_HANDLE_VALUE)
+    return;
+
+  // Lazily instantiate per-browser D3D11 device + local texture pool.
+  if (!texture_pool_)
+    texture_pool_.reset(new D3D11TexturePool());
+
+  // Sufficient dimensions to recreate the local texture. Use the full buffer
+  // size, not the dirty union (textures are re-created only when size changes,
+  // so per-frame allocation cost is amortized to nearly zero after warmup).
+  int width = 0, height = 0;
+  if (!dirtyRects.empty()) {
+    // Compute bounding box of dirty rects as a fallback lower bound; CEF
+    // always emits the *full* buffer dimensions in info when the underlying
+    // frame is new (the dirty rects simply describe what changed). We
+    // therefore use the union as a proxy only when no other source is
+    // available; in practice CEF also keeps the texture at |GetViewRect| size
+    // which is what we want.
+    int min_x = INT_MAX, min_y = INT_MAX, max_x = INT_MIN, max_y = INT_MIN;
+    for (const CefRect& r : dirtyRects) {
+      min_x = (std::min)(min_x, r.x);
+      min_y = (std::min)(min_y, r.y);
+      max_x = (std::max)(max_x, r.x + r.width);
+      max_y = (std::max)(max_y, r.y + r.height);
+    }
+    width = max_x - min_x;
+    height = max_y - min_y;
+  }
+  if (width <= 0 || height <= 0)
+    return;
+
+  if (!texture_pool_->CopyFrame(info.shared_texture_handle, width, height))
+    return;
+
+  HANDLE local_handle = texture_pool_->GetSharedHandle();
+  if (!local_handle || local_handle == INVALID_HANDLE_VALUE)
+    return;
+
+  ScopedJNIEnv env;
+  if (!env)
+    return;
+
+  ScopedJNIBrowser jbrowser(env, browser);
+  jboolean jtype = type == PET_VIEW ? JNI_FALSE : JNI_TRUE;
+  ScopedJNIObjectLocal jrectArray(env, NewJNIRectArray(env, dirtyRects));
+
+  // Reinterpret the NT HANDLE as a jlong for transport across JNI. The JavaFX
+  // side reopens it via ID3D11Device1::OpenSharedResource1 on Prism's device.
+  jlong jhandle = static_cast<jlong>(reinterpret_cast<intptr_t>(local_handle));
+
+  // Note the distinct Java method name "onAcceleratedPaint" with signature
+  // (CefBrowser, boolean, BoundingBox[], long, int, int). The backend
+  // CefRenderer is responsible for forwarding this to the D3D-aware renderer
+  // implementation and falling back to onPaint (software) if Prism refuses
+  // the texture.
+  JNI_CALL_VOID_METHOD(
+      env,
+      handle_,
+      "onAcceleratedPaint",
+      "(Lcom/techsenger/ceffx/core/browser/CefBrowser;Z[Ljavafx/geometry/BoundingBox;JII)V",
+      jbrowser.get(),
+      jtype,
+      jrectArray.get(),
+      jhandle,
+      texture_pool_->width(),
+      texture_pool_->height());
+#else
+  // On non-Windows platforms accelerated painting of this kind is not
+  // supported by this mod; OnPaint (software) remains the only path.
+  (void)browser;
+  (void)type;
+  (void)dirtyRects;
+  (void)info;
+#endif
 }
 
 bool RenderHandler::StartDragging(CefRefPtr<CefBrowser> browser,

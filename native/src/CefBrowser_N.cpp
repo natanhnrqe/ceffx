@@ -1165,6 +1165,13 @@ void create(std::shared_ptr<JNIObjectsForCreate> objs,
 #endif
   } else {
     windowInfo.SetAsWindowless((CefWindowHandle)windowHandle);
+#if defined(OS_WIN)
+    // Enable the shared-texture (accelerated) paint path on Windows. CEF will
+    // now route frames through OnAcceleratedPaint, providing a cross-process
+    // Direct3D 11 texture handle instead of a CPU pixel buffer. Falls back
+    // transparently to OnPaint (software) if the GPU can't honour the request.
+    windowInfo.shared_texture_enabled = true;
+#endif
   }
   if (transparent == JNI_FALSE) {
     // Specify an opaque background color (white) to disable transparency.

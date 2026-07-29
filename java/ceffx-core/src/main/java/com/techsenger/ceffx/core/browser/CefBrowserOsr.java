@@ -390,6 +390,25 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
         }
     }
 
+    /**
+     * Accelerated paint path. Called by CEF on the render thread when shared
+     * textures are enabled and the GPU is able to provide a Direct3D 11
+     * texture handle instead of a CPU pixel buffer.
+     *
+     * <p>We forward the native HANDLE to {@link CefRenderer#onAcceleratedPaint}
+     * so that the GPU-aware renderer can reopen the texture on the JavaFX
+     * Prism Direct3D device. Software-only renderers ignore this call and
+     * CEF transparently keeps producing frames via {@link #onPaint}.</p>
+     */
+    @Override
+    public void onAcceleratedPaint(CefBrowser browser, boolean popup, BoundingBox[] dirtyRects,
+            long sharedTextureHandle, int width, int height) {
+        if (renderer_ == null || !this.renderingEnabled) {
+            return;
+        }
+        renderer_.onAcceleratedPaint(popup, dirtyRects, sharedTextureHandle, width, height);
+    }
+
     @Override
     public boolean onCursorChange(CefBrowser browser, int cursorType) {
         // TODO: map cursorType to a JavaFX Cursor and set it on the scene.
