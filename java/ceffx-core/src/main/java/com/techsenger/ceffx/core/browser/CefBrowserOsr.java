@@ -24,6 +24,7 @@ import javafx.geometry.BoundingBox;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -58,7 +59,17 @@ class CefBrowserOsr extends CefBrowser_N implements CefRenderHandler {
             if (canvas instanceof Canvas c) {
                 c.widthProperty().bind(this.widthProperty());
                 c.heightProperty().bind(this.heightProperty());
+            } else if (canvas instanceof ImageView iv) {
+                // ImageView is what CefRendererFX/CefRendererD3D expose; we
+                // keep the image pixels at full pane resolution by binding
+                // fitWidth/fitHeight to the available layout area. This
+                // preserves the resize coverage that previously relied on
+                // Canvas.widthProperty/heightProperty.
+                iv.fitWidthProperty().bind(this.widthProperty());
+                iv.fitHeightProperty().bind(this.heightProperty());
             }
+            // A StackPane (CefRendererD3D) carries its own layout policy and
+            // will resize its children; no explicit binding is required.
         }
     }
 

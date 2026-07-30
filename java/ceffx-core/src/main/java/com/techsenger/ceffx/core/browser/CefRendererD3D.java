@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Node;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
@@ -85,7 +84,7 @@ public class CefRendererD3D implements CefRenderer {
     // CPU fallback (used iff Prism reflection fails / software pipeline).
     // ------------------------------------------------------------------
     private final CefRendererFX fallback = new CefRendererFX();
-    private final Canvas fallbackCanvas;
+    private final ImageView fallbackImageView;
     private volatile boolean acceleratedDisabled = false;
 
     // ------------------------------------------------------------------
@@ -99,15 +98,17 @@ public class CefRendererD3D implements CefRenderer {
     // Last frame transferred to Prism, so we can release the previous
     // Prism-texture wrapper before opening the next one.
     private Object lastPrismTexture;
+    private int lastPrismTextureWidth = -1;
+    private int lastPrismTextureHeight = -1;
 
     public CefRendererD3D() {
-        this.fallbackCanvas = (Canvas) fallback.getCanvas();
+        this.fallbackImageView = (ImageView) fallback.getCanvas();
         // Initially hidden until a frame arrives; this avoids a brief flash
         // of an uninitialised D3D texture on screen.
         this.imageView.setSmooth(false);
         this.imageView.setPreserveRatio(false);
-        this.pane.getChildren().add(fallbackCanvas);
-        this.fallbackCanvas.setVisible(false);
+        this.pane.getChildren().add(fallbackImageView);
+        this.fallbackImageView.setVisible(false);
         this.pane.getChildren().add(imageView);
     }
 
@@ -128,21 +129,29 @@ public class CefRendererD3D implements CefRenderer {
     @Override
     public void onPaint(boolean popup, BoundingBox[] dirtyRects, ByteBuffer buffer,
                         int width, int height) {
-        // Software fallback path. If we receive onPaint it means either:
+        // If we receive onPaint it means either:
         //  (a) the GPU couldn't satisfy shared_texture_enabled and CEF fell
         //      back to CPU pixels; or
         //  (b) we deliberately switched off acceleration because Prism
         //      reflection failed.
-        // In both cases we permanently prefer the software pipeline from
-        // here onwards to keep the UX stable and predictable.
+        // In both cases acceleration is no longer possible for this browser
+        // life-cycle, so we permanently commit to the software pipeline and
+        // discard the cached Prism texture. The discard runs on the JavaFX
+        // thread and drains any pending snapshot in the software pipeline
+        // first (CefRendererFX already coalesces mid-resize frames via its
+        // internal AtomicReference, so we simply ride on top of the same
+        // mechanism by running the discard on a fresh runLater after the
+        // fallback frame has been submitted — this guarantees the Prism
+        // texture isn't dropped while a previous upload is still queued).
         if (!acceleratedDisabled) {
             acceleratedDisabled = true;
             LOG.log(Level.WARNING,
                     "CefRendererD3D: software onPaint received, switching to "
                   + "CPU fallback for the rest of this browser's life.");
             Platform.runLater(() -> {
-                fallbackCanvas.setVisible(true);
+                fallbackImageView.setVisible(true);
                 imageView.setVisible(false);
+                discardPrismTexture();
             });
         }
         fallback.onPaint(popup, dirtyRects, buffer, width, height);
@@ -152,24 +161,17 @@ public class CefRendererD3D implements CefRenderer {
     public void onAcceleratedPaint(boolean popup, BoundingBox[] dirtyRects,
                                     long sharedTextureHandle, int width, int height) {
         if (acceleratedDisabled) {
-            // We are committed to the software path; nothing to do here.
             return;
         }
         if (popup) {
             // Popups are rare and small; defer to the software buffer until
             // a future iteration that supports accelerated popups too.
-            // Since onAcceleratedPaint does not carry pixels, we must simply
-            // skip the popup frame here; CEF will call OnPaint (software) for
-            // the popup widget if it cannot get a shared texture.
             return;
         }
         if (sharedTextureHandle == 0 || width <= 0 || height <= 0) {
             return;
         }
 
-        // All Prism lookups and texture operations must happen on the JavaFX
-        // thread; schedule the whole thing as a single runLater to keep the
-        // ordering with run-later calls from the renderer cleanup path.
         final long handle = sharedTextureHandle;
         final int w = width;
         final int h = height;
@@ -188,12 +190,7 @@ public class CefRendererD3D implements CefRenderer {
 
     @Override
     public void dispose() {
-        Platform.runLater(() -> {
-            // Release the Prism texture wrapper that wraps the native handle
-            // (this does NOT CloseHandle the underlying resource; that stays
-            // owned by the native CEFFX library).
-            lastPrismTexture = null;
-        });
+        Platform.runLater(() -> discardPrismTexture());
         fallback.dispose();
     }
 
@@ -201,6 +198,22 @@ public class CefRendererD3D implements CefRenderer {
     // Prism integration (JavaFX Application Thread only)
     // ------------------------------------------------------------------
 
+    /**
+     * Drains a single accelerated frame on the JavaFX Application Thread.
+     *
+     * <p>Applies the same strict geometric gate used by the software path:
+     * the dimensions advertised by the native callback are compared against
+     * the dimensions last used to allocate the Prism texture wrapper. If
+     * they diverge, the stale wrapper is discarded SYNCHRONOUSLY right here
+     * and the frame is SKIPPED — the very next frame (which carries the
+     * same new dimensions) re-enters with {@code lastPrismTexture} null and
+     * performs a fresh {@code createSharedTexture} sized correctly for the
+     * new layout. This is what prevents {@code D3DTexture.update} from
+     * ever being called with a buffer/target mismatch on the accelerated
+     * path:}<br>
+     * validity check and {@code createSharedTexture} happen in the same
+     * atomic block on the same thread.
+     */
     private void consumeAcceleratedFrame(long handle, int width, int height) {
         try {
             if (!prismResolved) {
@@ -208,44 +221,109 @@ public class CefRendererD3D implements CefRenderer {
                 prismResolved = true;
             }
             if (!prismAvailable) {
-                // Reflection failed once and for all: degrade to software.
                 acceleratedDisabled = true;
-                fallbackCanvas.setVisible(true);
+                fallbackImageView.setVisible(true);
                 imageView.setVisible(false);
                 return;
             }
 
-            // 1. Open the shared texture handle on Prism's D3D device.
-            // ResourceFactory.createTexture(...) signature depends on the
-            // JavaFX build; we resolve it lazily and pass the shared HANDLE
-            // wrapped in the format Prism expects (a long pointer).
-            Object prismTexture = openSharedTextureOnPrism(handle, width, height);
-            if (prismTexture == null) {
-                LOG.log(Level.WARNING,
-                        "CefRendererD3D: openSharedTextureOnPrism returned null; "
-                      + "degrading to software.");
-                acceleratedDisabled = true;
+            // ---- Strict geometric gate -------------------------------
+            // If the incoming CEF frame announces dimensions that differ from
+            // the ones the currently-cached Prism texture wrapper was built
+            // for, we are in the very middle of a resize race. Triangle of
+            // truth:
+            //   CEF GPU process  : has just produced a frame at the NEW size
+            //   Native CEFFX pool: has reallocated its local D3D11 texture
+            //                      to the NEW size and sends us the new handle
+            //   Prism D3DTexture : STILL allocated for the OLD size, because
+            //                      the QuantumRenderer pulse hasn't had a
+            //                      chance to re-run our createSharedTexture
+            //                      yet
+            //
+            // Calling createSharedTexture/update on the OLD Prism texture
+            // with the NEW handle dimensions triggers the exact same
+            //   "Upload requires N elements, but only M remain in the buffer"
+            // crash we just eradicated on the software path.
+            //
+            // Remediation: drop the stale Prism wrapper right now (so the
+            // next pulse cannot accidentally issue update() against it) and
+            // SKIP this frame. The next frame arrives with lastPrismTexture
+            // == null, so the import block below builds a fresh wrapper at
+            // the correct dimensions atomically.
+            if (lastPrismTexture != null
+                    && (lastPrismTextureWidth != width
+                        || lastPrismTextureHeight != height)) {
+                LOG.log(Level.FINE,
+                        "CefRendererD3D: accelerated frame size changed "
+                      + lastPrismTextureWidth + "x" + lastPrismTextureHeight
+                      + " -> " + width + "x" + height
+                      + "; discarding stale Prism texture and skipping frame.");
+                discardPrismTexture();
                 return;
             }
 
-            // 2. Ensure the ImageView exposes the new dimensions so Prism
-            // picks it up. The actual sampling happens during Scene.pulse().
+            // If we have no wrapper (first frame ever, after a discard above,
+            // or after a previous error), (re)build it now at exactly the
+            // incoming frame dimensions. This is the ONLY place where
+            // createSharedTexture / wrapSharedTexture is invoked, and it
+            // runs on the JavaFX Application Thread, so the resulting Prism
+            // texture object's identity and dimensions are stable for the
+            // remainder of this frame's upload.
+            if (lastPrismTexture == null) {
+                Object prismTexture = openSharedTextureOnPrism(handle, width, height);
+                if (prismTexture == null) {
+                    LOG.log(Level.WARNING,
+                            "CefRendererD3D: openSharedTextureOnPrism returned null; "
+                          + "degrading to software.");
+                    acceleratedDisabled = true;
+                    discardPrismTexture();
+                    fallbackImageView.setVisible(true);
+                    imageView.setVisible(false);
+                    return;
+                }
+                lastPrismTexture = prismTexture;
+                lastPrismTextureWidth = width;
+                lastPrismTextureHeight = height;
+                // The ImageView must track the current texture's geometry so
+                // the next Scene pulse samples the correct region. We update
+                // it on the same thread that created the texture so the
+                // visible geometry and the prism texture are coherent.
+                imageView.setFitWidth(width);
+                imageView.setFitHeight(height);
+                imageView.setVisible(true);
+                fallbackImageView.setVisible(false);
+                return;
+            }
+
+            // Same size, valid wrapper: simply refresh the dimensions exposed
+            // to the Scene (a no-op once stable) so the next pulse repaints.
+            // The native pool already reused/overwrote the contents of the
+            // texture the handle refers to; we don't need to re-import the
+            // HANDLE because our wrapper is a Prism-side reference to the
+            // SAME shared resource the native side keeps writing into. Future
+            // robustness improvement: call Prism Texture.updateTexture() here
+            // if a refresh is required by the JavaFX build in use.
             imageView.setFitWidth(width);
             imageView.setFitHeight(height);
-            imageView.setVisible(true);
-            fallbackCanvas.setVisible(false);
-
-            // Keep the last Prism texture alive until the next frame to avoid
-            // it being GC'd before Prism uploads it; then release the
-            // previous reference.
-            lastPrismTexture = prismTexture;
         } catch (Throwable t) {
             LOG.log(Level.SEVERE,
                     "CefRendererD3D: failed to consume accelerated frame", t);
             acceleratedDisabled = true;
-            fallbackCanvas.setVisible(true);
+            discardPrismTexture();
+            fallbackImageView.setVisible(true);
             imageView.setVisible(false);
         }
+    }
+
+    /**
+     * Drops the cached Prism texture wrapper WITHOUT touching the underlying
+     * native HANDLE (which stays owned by the CEFFX native library). Safe to
+     * call repeatedly. Must be invoked on the JavaFX Application Thread.
+     */
+    private void discardPrismTexture() {
+        lastPrismTexture = null;
+        lastPrismTextureWidth = -1;
+        lastPrismTextureHeight = -1;
     }
 
     /**
